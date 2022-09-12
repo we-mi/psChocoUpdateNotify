@@ -16,7 +16,7 @@ This script will check the existence of two protocol handlers in the registry an
 The protocol handlers are called when you click on `Update` or `GUI` in the notification toast.  
 You can even call these handlers from within the Windows `Run`-Dialogue with `psChocoUpdateNotifyUpdate:` or `psChocoUpdateNotifyGUI:`
 
-If you move the project folder to any other location, you need to delete or manually change these protocol handlers (#1) in the registry. They will get recreated on the next start.
+If you move the project folder to any other location, you need to delete or manually change these protocol handlers (See [this](https://github.com/we-mi/psChocoUpdateNotify/issues/1) issue) in the registry. They will get recreated on the next start.
 
 The paths are:
 
