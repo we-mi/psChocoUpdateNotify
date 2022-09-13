@@ -31,14 +31,22 @@ if ($Mode -eq "Notification") {
 
     #Checking if psChocoUpdateNotifyUpdate:// and psChocoUpdateNotifyGUI:// protocol handlers are present
     New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -ErrorAction SilentlyContinue | Out-Null
-    $ProtocolHandlerUpdate = Get-Item 'HKCR:\psChocoUpdateNotifyUpdate' -ErrorAction SilentlyContinue
-    $ProtocolHandlerGUI = Get-Item 'HKCR:\psChocoUpdateNotifyGUI' -ErrorAction SilentlyContinue
+    $ProtocolHandlerUpdate = Get-ItemProperty 'HKCR:\psChocoUpdateNotifyUpdate\Shell\open\command' -Name '(Default)' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty '(Default)'
+    $ProtocolHandlerGUI = Get-ItemProperty 'HKCR:\psChocoUpdateNotifyGUI\Shell\open\command' -Name '(Default)' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty '(Default)'
     Remove-PSDrive -Name HKCR
 
-    if (!$ProtocolHandlerUpdate -or !$ProtocolHandlerGUI) {
-        [System.Windows.MessageBox]::Show("This is the first time you are starting this application as a notification. You might be asked for elevated permissions in order to install protocol handlers!",'First start','OK','Info')
+    $ProtocolHandlerUpdateDesiredValue = "cscript.exe `"$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyUpdate.vbs')`""
+    $ProtocolHandlerGUIDesiredValue = "cscript.exe `"$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyGUI.vbs')`""
 
-        $ps1File = Join-Path $env:TEMP "Create-ProtocolHandler.ps1"
+    if ([String]::IsNullOrWhiteSpace($ProtocolHandlerUpdate) -or [String]::IsNullOrWhiteSpace($ProtocolHandlerGUI) -or
+        $ProtocolHandlerUpdate -ne $ProtocolHandlerUpdateDesiredValue -or $ProtocolHandlerGUI -ne $ProtocolHandlerGUIDesiredValue) {
+
+        $sh = New-Object -ComObject "Wscript.Shell"
+        $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis windows will autoclose with 'OK' in 120 seconds",120,"Protocol Handler install/update",3+32)
+
+        if ($answer -eq -1 -or $answer -eq 6) { # -1 = Timeout reached; 6 = Yes
+
+            $ps1File = Join-Path $env:TEMP "Create-ProtocolHandler.ps1"
         @"
 New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -ErrorAction SilentlyContinue | Out-Null
 
@@ -59,9 +67,12 @@ Set-ItemProperty 'HKCR:\psChocoUpdateNotifyGUI\Shell\Open\command' -Name '(DEFAU
 Remove-PSDrive -Name HKCR
 "@ | Out-File -FilePath $ps1File
 
-        Start-Process -FilePath "powershell.exe" -ArgumentList "-File $ps1File -WindowStyle Normal -NoProfile" -verb RunAs -Wait
+            Start-Process -FilePath "powershell.exe" -ArgumentList "-File $ps1File -WindowStyle Normal -NoProfile" -verb RunAs -Wait
 
-        Remove-Item $ps1File -ErrorAction SilentlyContinue
+            Remove-Item $ps1File -ErrorAction SilentlyContinue
+        } elseif ($answer -eq 2) { # 2 = Cancel / Close Window / ESC
+            Exit 0
+        }
     }
 
     if (-not $OutdatedPackages) {
