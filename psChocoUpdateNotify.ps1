@@ -29,7 +29,7 @@ $script:projectRootFolder = $PSScriptRoot
 if ($Mode -eq "Notification") {
     Import-Module (Join-Path $script:projectRootFolder ".\BurntToast\BurntToast.psd1")
 
-    #Checking if psChocoUpdateNotifyUpdate:// and psChocoUpdateNotifyGUI:// protocol handlers are present
+    # Checking if psChocoUpdateNotifyUpdate:// and psChocoUpdateNotifyGUI:// protocol handlers are present
     New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -ErrorAction SilentlyContinue | Out-Null
     $ProtocolHandlerUpdate = Get-ItemProperty 'HKCR:\psChocoUpdateNotifyUpdate\Shell\open\command' -Name '(Default)' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty '(Default)'
     $ProtocolHandlerGUI = Get-ItemProperty 'HKCR:\psChocoUpdateNotifyGUI\Shell\open\command' -Name '(Default)' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty '(Default)'
@@ -37,12 +37,14 @@ if ($Mode -eq "Notification") {
 
     $ProtocolHandlerUpdateDesiredValue = "cscript.exe `"$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyUpdate.vbs')`""
     $ProtocolHandlerGUIDesiredValue = "cscript.exe `"$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyGUI.vbs')`""
+    $LogonTask = Get-ScheduledTask -TaskName "psChocoUpdateNotify-Logon" -TaskPath "\psChocoUpdateNotify\" -ErrorAction SilentlyContinue
 
     if ([String]::IsNullOrWhiteSpace($ProtocolHandlerUpdate) -or [String]::IsNullOrWhiteSpace($ProtocolHandlerGUI) -or
-        $ProtocolHandlerUpdate -ne $ProtocolHandlerUpdateDesiredValue -or $ProtocolHandlerGUI -ne $ProtocolHandlerGUIDesiredValue) {
+        $ProtocolHandlerUpdate -ne $ProtocolHandlerUpdateDesiredValue -or $ProtocolHandlerGUI -ne $ProtocolHandlerGUIDesiredValue -or
+        $null -eq $LogonTask) {
 
         $sh = New-Object -ComObject "Wscript.Shell"
-        $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis windows will autoclose with 'OK' in 120 seconds",120,"Protocol Handler install/update",3+32)
+        $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path/the scheduled task needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers or the task!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis window will autoclose with 'OK' in 120 seconds",120,"Protocol Handler/scheduled task install/update",3+32)
 
         if ($answer -eq -1 -or $answer -eq 6) { # -1 = Timeout reached; 6 = Yes
 
@@ -63,6 +65,12 @@ Set-ItemProperty 'HKCR:\psChocoUpdateNotifyGUI' -Name 'URL Protocol' -value '' -
 New-ItemProperty -Path 'HKCR:\psChocoUpdateNotifyGUI' -PropertyType dword -Name 'EditFlags' -value 2162688
 New-Item 'HKCR:\psChocoUpdateNotifyGUI\Shell\Open\command' -Force
 Set-ItemProperty 'HKCR:\psChocoUpdateNotifyGUI\Shell\Open\command' -Name '(DEFAULT)' -value 'cscript.exe "$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyGUI.vbs')"' -Force
+
+`$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NonInteractive -NoLogo -NoProfile -File '$(Join-Path $script:projectRootFolder "psChocoUpdateNotify.ps1")'"
+`$Trigger = New-ScheduledTaskTrigger -AtLogOn
+`$Settings = New-ScheduledTaskSettingsSet
+`$Task = New-ScheduledTask -Action `$Action -Trigger `$Trigger -Settings `$Settings
+Register-ScheduledTask -TaskName 'psChocoUpdateNotify-Logon' -InputObject `$Task -TaskPath "\psChocoUpdateNotify" -Force
 
 Remove-PSDrive -Name HKCR
 "@ | Out-File -FilePath $ps1File
