@@ -155,7 +155,18 @@ function Start-Choco { # implement the pschoco module from https://gitlab.com/Pa
     
     begin {
 
-        $ChocoEXE = "choco"
+        $proc = $null
+        try {
+            $proc = Start-Process -FilePath "roco" -Wait -PassThru -NoNewWindow -ErrorAction SilentlyContinue
+        } catch { }
+
+        if ($null -eq $proc -or $proc.ExitCode -ne 0) {
+            $ChocoEXE = "choco"
+        } else {
+            $ChocoEXE = "roco"
+        }
+
+        Write-Host "Using $ChocoEXE"
     }
     
     process {
