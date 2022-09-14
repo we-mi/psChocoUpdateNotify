@@ -44,7 +44,7 @@ if ($Mode -eq "Notification") {
         $null -eq $LogonTask) {
 
         $sh = New-Object -ComObject "Wscript.Shell"
-        $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path/the scheduled task needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers or the task!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis window will autoclose with 'OK' in 120 seconds",120,"Protocol Handler/scheduled task install/update",3+32)
+        $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path/the scheduled task needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers or the task!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis window will autoclose with 'Yes' in 120 seconds",120,"Protocol Handler/scheduled task install/update",3+32)
 
         if ($answer -eq -1 -or $answer -eq 6) { # -1 = Timeout reached; 6 = Yes
 
@@ -66,7 +66,7 @@ New-ItemProperty -Path 'HKCR:\psChocoUpdateNotifyGUI' -PropertyType dword -Name 
 New-Item 'HKCR:\psChocoUpdateNotifyGUI\Shell\Open\command' -Force
 Set-ItemProperty 'HKCR:\psChocoUpdateNotifyGUI\Shell\Open\command' -Name '(DEFAULT)' -value 'cscript.exe "$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyGUI.vbs')"' -Force
 
-`$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NonInteractive -NoLogo -NoProfile -File '$(Join-Path $script:projectRootFolder "psChocoUpdateNotify.ps1")'"
+`$Action = New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-WindowStyle Hidden -NonInteractive -NoLogo -NoProfile -File ```"$(Join-Path $script:projectRootFolder "psChocoUpdateNotify.ps1")```""
 `$Trigger = New-ScheduledTaskTrigger -AtLogOn
 `$Settings = New-ScheduledTaskSettingsSet
 `$Task = New-ScheduledTask -Action `$Action -Trigger `$Trigger -Settings `$Settings
@@ -90,7 +90,7 @@ Remove-PSDrive -Name HKCR
     if ($script:OutdatedPackages) {
         $appimage = New-BTImage -Source (Join-Path $script:projectRootFolder "Images\icon_256.png") -AppLogoOverride
         $Text1 = New-BTText -Content  "Chocolatey Package Updates"
-        $Text2 = New-BTText -Content "$($script:OutdatedPackages.Count) Updates were found. Please select if you'd like to update them all now, open the GUI, or snooze this message."
+        $Text2 = New-BTText -Content "$($script:OutdatedPackages.Count) Updates were found. Please choose if you'd like to update them all now, open the GUI, or snooze this message."
         $Button1 = New-BTButton -Content "Update" -Arguments "psChocoUpdateNotifyUpdate:" -ActivationType Protocol
         $Button2 = New-BTButton -Content "GUI" -Arguments "psChocoUpdateNotifyGUI:" -ActivationType Protocol
         $Button3 = New-BTButton -Content "Snooze" -snooze -id 'SnoozeTime'
