@@ -30,7 +30,7 @@ $window.Add_Loaded({
     $script:uiHash.Options = @{
         Silent = $False
         Hidden = $False
-        WhatIf = $True
+        WhatIf = $False
     }
 
     $cbSilent.IsChecked = $script:uiHash.Options.Silent
