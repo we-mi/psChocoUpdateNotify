@@ -3,6 +3,7 @@ $window.Add_Loaded({
     $imgLogo.Source = (Join-Path $script:projectRootFolder "Images\icon_256.png")
     $imgSearch.Source = (Join-Path $script:projectRootFolder "Images\Search.png")
     $imgUpdate.Source = (Join-Path $script:projectRootFolder "Images\Update.png")
+    $imgHelp.Source = (Join-Path $script:projectRootFolder "Images\Help.png")
 
     # This is the icon in the upper left hand corner of the app
     $this.Icon = (Join-Path $script:projectRootFolder "Images\icon_256.png")
@@ -80,4 +81,8 @@ $cbHidden.Add_Click({
 
 $cbWhatIf.Add_Click({
     $script:uiHash.Options.WhatIf = $this.IsChecked
+})
+
+$bHelp.Add_Click({
+    Start-Process 'https://github.com/we-mi/psChocoUpdateNotify'
 })
