@@ -11,14 +11,16 @@ You might want to start this script as a scheduled task at logon.
 
 ## Hints
 
-This script will check the existence of two protocol handlers in the registry and create it if they are missing. You need admin privileges for this, but you will need that anyway if you want to update chocolatey packages.
+This script will check the existence of two protocol handlers in the registry and a scheduled task. If they do not exist it will create them. You need admin privileges for this, but you will need that anyway if you want to update chocolatey packages.
 
 The protocol handlers are called when you click on `Update` or `GUI` in the notification toast.  
 You can even call these handlers from within the Windows `Run`-Dialogue with `psChocoUpdateNotifyUpdate:` or `psChocoUpdateNotifyGUI:`
 
-If you move the project folder to any other location, you need to delete or manually change these protocol handlers (See [this](https://github.com/we-mi/psChocoUpdateNotify/issues/1) issue) in the registry. They will get recreated on the next start.
+The scheduled task is created in `\psChocoUpdateNotify\psChocoUpdateNotify-Logon` and will trigger at every logon.
 
-The paths are:
+The script detects if any change of the protocol handlers and the scheduled task happened and will fix them (you will need admin privileges again...)
+
+The path to the protocol handlers are:
 
 - `HKEY_CLASSES_ROOT\psChocoUpdateNotifyUpdate`
 - `HKEY_CLASSES_ROOT\psChocoUpdateNotifyGUI`
