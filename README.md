@@ -1,9 +1,18 @@
 # psChocoUpdateNotify
 Searches for chocolatey package updates and notifies the user about it. Includes a GUI where you can choose what to update
 
-## Usage
+## Install
+
+You can install this script as a module through the powershell gallery
+
+`Install-Module -Name psChocoUpdateNotify -Scope AllUsers`
+
+and then start the script with `Start-PSChocoUpdateNotify`
+
+*or*
 
 [Download](https://github.com/we-mi/psChocoUpdateNotify/archive/refs/heads/main.zip) and extract this project, then start the file `psChocoUpdateNotify.ps1`.
+## Usage
 
 Be sure to set your [ExecutionPolicy](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies) accordingly or this script might not start.
 
