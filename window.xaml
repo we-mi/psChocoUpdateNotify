@@ -131,7 +131,10 @@
 
         <DataGrid Grid.Row="2" FontSize="11" AutoGenerateColumns="False" x:Name="dgUpdates" AlternatingRowBackground="lightgray" IsReadOnly="true" Margin="5" IsEnabled="True" HeadersVisibility="Column" CanUserResizeRows="False" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" MaxHeight="350">
             <DataGrid.Columns>
-                <DataGridTemplateColumn Header="Update">
+                <DataGridTemplateColumn>
+                    <DataGridTemplateColumn.Header>
+                        <CheckBox x:Name="cbUpdateAll" IsChecked="True">Update</CheckBox>
+                    </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate>
                             <CheckBox HorizontalAlignment="Center" IsChecked="{Binding DoUpdate,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"></CheckBox>

@@ -86,3 +86,15 @@ $cbWhatIf.Add_Click({
 $bHelp.Add_Click({
     Start-Process 'https://github.com/we-mi/psChocoUpdateNotify'
 })
+
+$cbUpdateAll.Add_Checked({
+    $dtUpdates | ForEach-Object {
+        $_.DoUpdate = $True
+    }
+})
+
+$cbUpdateAll.Add_Unchecked({
+    $dtUpdates | ForEach-Object {
+        $_.DoUpdate = $False
+    }
+})
