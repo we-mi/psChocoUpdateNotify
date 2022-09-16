@@ -2,4 +2,6 @@ Set objShell	= CreateObject("WScript.shell")
 Set oFSO		= CreateObject("Scripting.FileSystemObject")
 Dim sScriptDir : sScriptDir = oFSO.GetParentFolderName(WScript.ScriptFullName)
 
-objShell.run "PowerShell.exe -Command ""Start-Process -WindowStyle Hidden -FilePath 'powershell.exe' -ArgumentList '-File " & sScriptDir & "\psChocoUpdateNotify.ps1 -Mode GUI'"" ", 0, True
+objShell.CurrentDirectory = sScriptDir
+
+objShell.run "Powershell.exe -WindowStyle Hidden -File psChocoUpdateNotify.ps1 -Mode GUI",0,True
