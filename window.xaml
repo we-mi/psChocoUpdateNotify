@@ -58,7 +58,7 @@
     <Grid Margin="1,0">
         <Grid.RowDefinitions>
             <RowDefinition Height="100" />
-            <RowDefinition Height="40" />
+            <RowDefinition Height="50" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
@@ -154,6 +154,8 @@
             <TextBlock x:Name="tbOverlay" FontSize="18"/>
             <TextBlock x:Name="tbOverlayProgress" FontSize="18" HorizontalAlignment="Center"/>
         </StackPanel>
+
+        <Button x:Name="bChocoPage" Grid.RowSpan="4" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="5" Visibility="Collapsed">Visit https://chocolatey.org/install</Button>
         
     </Grid>
 </Window>

@@ -540,3 +540,22 @@ function Show-Overlay {
         $script:handleProgress = $psCmdProgress.BeginInvoke()
     }
 }
+
+function Test-ChocolateyInstall {
+    [CmdletBinding()]
+    [OutputType([boolean])]
+
+
+    $proc = $null
+    try {
+        $proc = Start-Process -FilePath "choco" -ArgumentList "-v" -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL" -ErrorAction SilentlyContinue
+    } catch {
+        return $false
+    }
+
+    if ($null -eq $proc -or $proc.ExitCode -ne 0) { # choco not found
+        return $false
+    } else { # choco found
+        return $true
+    }
+}

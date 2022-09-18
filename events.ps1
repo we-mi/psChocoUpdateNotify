@@ -39,10 +39,23 @@ $window.Add_Loaded({
     $cbWhatIf.IsChecked = $script:uiHash.Options.WhatIf
 
     $window.Title = "psChocoUpdateNotify - v$($script:version)"
+
+    if (Test-ChocolateyInstall) {
+        $script:ChocolateyInstalled = $True
+    } else {
+        $dgUpdates.Visibility = "Collapsed"
+        $tbInfo.Visibility = "Visible"
+        $bChocoPage.Visibility = "Visible"
+        $tbInfo.Text = "Chocolatey was not found on your system.`nYou can install it by visiting chocolatey.org and follow the instructions"
+
+        $script:ChocolateyInstalled = $False
+    }
 })
 
 $window.Add_ContentRendered({
-    Update-PackageList
+    if ($script:ChocolateyInstalled) {
+        Update-PackageList
+    }
 })
 
 $bControlSearch.Add_Click({
@@ -97,4 +110,8 @@ $cbUpdateAll.Add_Unchecked({
     $dtUpdates | ForEach-Object {
         $_.DoUpdate = $False
     }
+})
+
+$bChocoPage.Add_Click({
+    Start-Process 'https://chocolatey.org/install'
 })

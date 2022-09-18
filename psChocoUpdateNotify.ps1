@@ -32,29 +32,30 @@ $script:projectRootFolder = $PSScriptRoot
 if ($Mode -eq "Notification") {
     Import-Module (Join-Path $script:projectRootFolder ".\BurntToast\BurntToast.psd1")
 
-    # Checking if psChocoUpdateNotifyUpdate:// and psChocoUpdateNotifyGUI:// protocol handlers are present
-    New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -ErrorAction SilentlyContinue | Out-Null
-    $ProtocolHandlerUpdate = Get-ItemProperty 'HKCR:\psChocoUpdateNotifyUpdate\Shell\open\command' -Name '(Default)' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty '(Default)'
-    $ProtocolHandlerGUI = Get-ItemProperty 'HKCR:\psChocoUpdateNotifyGUI\Shell\open\command' -Name '(Default)' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty '(Default)'
-    Remove-PSDrive -Name HKCR
+    if (Test-ChocolateyInstall) {
+        # Checking if psChocoUpdateNotifyUpdate:// and psChocoUpdateNotifyGUI:// protocol handlers are present
+        New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -ErrorAction SilentlyContinue | Out-Null
+        $ProtocolHandlerUpdate = Get-ItemProperty 'HKCR:\psChocoUpdateNotifyUpdate\Shell\open\command' -Name '(Default)' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty '(Default)'
+        $ProtocolHandlerGUI = Get-ItemProperty 'HKCR:\psChocoUpdateNotifyGUI\Shell\open\command' -Name '(Default)' -ErrorAction SilentlyContinue | Select-Object -ExpandProperty '(Default)'
+        Remove-PSDrive -Name HKCR
 
-    $ProtocolHandlerUpdateDesiredValue = "cscript.exe `"$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyUpdate.vbs')`""
-    $ProtocolHandlerGUIDesiredValue = "cscript.exe `"$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyGUI.vbs')`""
-    $LogonTask = Get-ScheduledTask -TaskName "psChocoUpdateNotify-Logon" -TaskPath "\psChocoUpdateNotify\" -ErrorAction SilentlyContinue
+        $ProtocolHandlerUpdateDesiredValue = "cscript.exe `"$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyUpdate.vbs')`""
+        $ProtocolHandlerGUIDesiredValue = "cscript.exe `"$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyGUI.vbs')`""
+        $LogonTask = Get-ScheduledTask -TaskName "psChocoUpdateNotify-Logon" -TaskPath "\psChocoUpdateNotify\" -ErrorAction SilentlyContinue
 
-    if ( $IgnoreStartupChecks.IsPresent -eq $false -and                                                                                 # Check if we should update things
-        ([String]::IsNullOrWhiteSpace($ProtocolHandlerUpdate) -or [String]::IsNullOrWhiteSpace($ProtocolHandlerGUI) -or                 # Paths are present
-        $ProtocolHandlerUpdate -ne $ProtocolHandlerUpdateDesiredValue -or $ProtocolHandlerGUI -ne $ProtocolHandlerGUIDesiredValue -or   # Values are correct
-        $null -eq $LogonTask)                                                                                                           # Task is present (do not check the task itself. This means you can do changes to the task if you wish to, without loosing them on an update)
-        ) {                                                                                    
+        if ( $IgnoreStartupChecks.IsPresent -eq $false -and                                                                                 # Check if we should update things
+            ([String]::IsNullOrWhiteSpace($ProtocolHandlerUpdate) -or [String]::IsNullOrWhiteSpace($ProtocolHandlerGUI) -or                 # Paths are present
+            $ProtocolHandlerUpdate -ne $ProtocolHandlerUpdateDesiredValue -or $ProtocolHandlerGUI -ne $ProtocolHandlerGUIDesiredValue -or   # Values are correct
+            $null -eq $LogonTask)                                                                                                           # Task is present (do not check the task itself. This means you can do changes to the task if you wish to, without loosing them on an update)
+            ) {                                                                                    
 
-        $sh = New-Object -ComObject "Wscript.Shell"
-        $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path/the scheduled task needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers or the task!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis window will autoclose with 'Yes' in 120 seconds",120,"Protocol Handler/scheduled task install/update",3+32)
+            $sh = New-Object -ComObject "Wscript.Shell"
+            $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path/the scheduled task needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers or the task!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis window will autoclose with 'Yes' in 120 seconds",120,"Protocol Handler/scheduled task install/update",3+32)
 
-        if ($answer -eq -1 -or $answer -eq 6) { # -1 = Timeout reached; 6 = Yes
+            if ($answer -eq -1 -or $answer -eq 6) { # -1 = Timeout reached; 6 = Yes
 
-            $ps1File = Join-Path $env:TEMP "Create-ProtocolHandler.ps1"
-        @"
+                $ps1File = Join-Path $env:TEMP "Create-ProtocolHandler.ps1"
+            @"
 New-PSDrive -Name HKCR -PSProvider Registry -Root HKEY_CLASSES_ROOT -ErrorAction SilentlyContinue | Out-Null
 
 New-item 'HKCR:\psChocoUpdateNotifyUpdate' -Force
@@ -80,48 +81,61 @@ Register-ScheduledTask -TaskName 'psChocoUpdateNotify-Logon' -InputObject `$Task
 Remove-PSDrive -Name HKCR
 "@ | Out-File -FilePath $ps1File
 
-            Start-Process -FilePath "powershell.exe" -ArgumentList "-File $ps1File -WindowStyle Normal -NoProfile" -verb RunAs -Wait
+                Start-Process -FilePath "powershell.exe" -ArgumentList "-File $ps1File -WindowStyle Normal -NoProfile" -verb RunAs -Wait
 
-            Remove-Item $ps1File -ErrorAction SilentlyContinue
-        } elseif ($answer -eq 2) { # 2 = Cancel / Close Window / ESC
-            Exit 0
+                Remove-Item $ps1File -ErrorAction SilentlyContinue
+            } elseif ($answer -eq 2) { # 2 = Cancel / Close Window / ESC
+                Exit 0
+            }
         }
-    }
 
-    if (-not $OutdatedPackages) {
-        $script:OutdatedPackages = @(Start-Choco -Command "outdated" -Options "--ignore-unfound")
-    }
+        if (-not $OutdatedPackages) {
+            $script:OutdatedPackages = @(Start-Choco -Command "outdated" -Options "--ignore-unfound")
+        }
 
-    if ($script:OutdatedPackages) {
+        if ($script:OutdatedPackages) {
+            $appimage = New-BTImage -Source (Join-Path $script:projectRootFolder "Images\icon_256.png") -AppLogoOverride
+            $Text1 = New-BTText -Content  "Chocolatey Package Updates"
+            $Text2 = New-BTText -Content "$($script:OutdatedPackages.Count) Updates were found. Please choose if you'd like to update them all now, open the GUI, or snooze this message."
+            $Button1 = New-BTButton -Content "Update" -Arguments "psChocoUpdateNotifyUpdate:" -ActivationType Protocol
+            $Button2 = New-BTButton -Content "GUI" -Arguments "psChocoUpdateNotifyGUI:" -ActivationType Protocol
+            $Button3 = New-BTButton -Content "Snooze" -snooze -id 'SnoozeTime'
+            $Button4 = New-BTButton -Content "Dismiss" -Dismiss
+            $1Min = New-BTSelectionBoxItem -Id 1 -Content 'Snooze for 1 minute'
+            $5Min = New-BTSelectionBoxItem -Id 5 -Content 'Snooze for 5 minutes'
+            $15Min = New-BTSelectionBoxItem -Id 10 -Content 'Snooze for 15 minutes'
+            $30Min = New-BTSelectionBoxItem -Id 30 -Content 'Snooze for 30 minutes'
+            $1Hour = New-BTSelectionBoxItem -Id 60 -Content 'Snooze for 1 hour'
+            $Items = $1Min, $5Min, $15Min, $30Min, $1Hour
+            $SelectionBox = New-BTInput -Id 'SnoozeTime' -DefaultSelectionBoxItemId 5 -Items $Items
+            $action = New-BTAction -Buttons $Button1, $Button2, $Button3, $Button4 -inputs $SelectionBox
+            $Binding = New-BTBinding -Children $text1, $text2 -AppLogoOverride $appimage
+            $Visual = New-BTVisual -BindingGeneric $Binding
+            $Content = New-BTContent -Visual $Visual -Actions $action
+        } else {
+            $appimage = New-BTImage -Source (Join-Path $script:projectRootFolder "Images\icon_256.png") -AppLogoOverride
+            $Text1 = New-BTText -Content  "Chocolatey Package Updates"
+            $Text2 = New-BTText -Content "Your packages are up-to-date :>"
+            $Button = New-BTButton -Content "Dismiss" -Dismiss
+            $action = New-BTAction -Buttons $Button
+            $Binding = New-BTBinding -Children $text1, $text2 -AppLogoOverride $appimage
+            $Visual = New-BTVisual -BindingGeneric $Binding
+            $Content = New-BTContent -Visual $Visual -Actions $action
+        }    
+        Submit-BTNotification -Content $Content
+    } else { # choco not installed or not in PATH
         $appimage = New-BTImage -Source (Join-Path $script:projectRootFolder "Images\icon_256.png") -AppLogoOverride
-        $Text1 = New-BTText -Content  "Chocolatey Package Updates"
-        $Text2 = New-BTText -Content "$($script:OutdatedPackages.Count) Updates were found. Please choose if you'd like to update them all now, open the GUI, or snooze this message."
-        $Button1 = New-BTButton -Content "Update" -Arguments "psChocoUpdateNotifyUpdate:" -ActivationType Protocol
-        $Button2 = New-BTButton -Content "GUI" -Arguments "psChocoUpdateNotifyGUI:" -ActivationType Protocol
-        $Button3 = New-BTButton -Content "Snooze" -snooze -id 'SnoozeTime'
-        $Button4 = New-BTButton -Content "Dismiss" -Dismiss
-        $1Min = New-BTSelectionBoxItem -Id 1 -Content 'Snooze for 1 minute'
-        $5Min = New-BTSelectionBoxItem -Id 5 -Content 'Snooze for 5 minutes'
-        $15Min = New-BTSelectionBoxItem -Id 10 -Content 'Snooze for 15 minutes'
-        $30Min = New-BTSelectionBoxItem -Id 30 -Content 'Snooze for 30 minutes'
-        $1Hour = New-BTSelectionBoxItem -Id 60 -Content 'Snooze for 1 hour'
-        $Items = $1Min, $5Min, $15Min, $30Min, $1Hour
-        $SelectionBox = New-BTInput -Id 'SnoozeTime' -DefaultSelectionBoxItemId 5 -Items $Items
-        $action = New-BTAction -Buttons $Button1, $Button2, $Button3, $Button4 -inputs $SelectionBox
+        $Text1 = New-BTText -Content  "Chocolatey Installation"
+        $Text2 = New-BTText -Content "Chocolatey was not found on your system.`n`nYou can install it by visiting chocolatey.org and follow the instructions"
+        $Button1 = New-BTButton -Content "Install" -Arguments "https://chocolatey.org/install" -ActivationType Protocol
+        $Button2 = New-BTButton -Content "Dismiss" -Dismiss
+        $action = New-BTAction -Buttons $Button1, $Button2
         $Binding = New-BTBinding -Children $text1, $text2 -AppLogoOverride $appimage
         $Visual = New-BTVisual -BindingGeneric $Binding
         $Content = New-BTContent -Visual $Visual -Actions $action
-    } else {
-        $appimage = New-BTImage -Source (Join-Path $script:projectRootFolder "Images\icon_256.png") -AppLogoOverride
-        $Text1 = New-BTText -Content  "Chocolatey Package Updates"
-        $Text2 = New-BTText -Content "Your packages are up-to-date :>"
-        $Button = New-BTButton -Content "Dismiss" -Dismiss
-        $action = New-BTAction -Buttons $Button
-        $Binding = New-BTBinding -Children $text1, $text2 -AppLogoOverride $appimage
-        $Visual = New-BTVisual -BindingGeneric $Binding
-        $Content = New-BTContent -Visual $Visual -Actions $action
-    }    
-    Submit-BTNotification -Content $Content
+         
+        Submit-BTNotification -Content $Content
+    }
 
 } elseif ($Mode -eq "GUI") {
     # Load XAML File
