@@ -342,6 +342,7 @@ function Update-PackageList {
     $script:uiHash.gOverlay = $gOverlay
     $script:uiHash.spOverlay = $spOverlay
     $script:uiHash.tbOverlay = $tbOverlay
+    $script:uiHash.dgUpdates = $dgUpdates
     $script:uiHash.tbOverlayProgress = $tbOverlayProgress
     $script:uiHash.dtUpdates = $dtUpdates
     $script:uiHash.tbInfo = $tbInfo
@@ -383,6 +384,11 @@ function Update-PackageList {
                     $script:uiHash.currentAction = "None" # This will end the Progress overlay
                     $script:uiHash.spOverlay.Visibility = "Collapsed"
                     $script:uiHash.gOverlay.Visibility = "Collapsed"
+                    $script:uiHash.tbInfo.Visibility = "Visible"
+
+                    if ($script:uiHash.dgUpdates.Items.Count -gt 0) {
+                        $script:uiHash.dgUpdates.Visibility = "Visible"
+                    }
                 }
     
             }, "Normal" )            
@@ -484,6 +490,8 @@ function Show-Overlay {
     if ($gOverlay.IsVisible -eq $False) { # do not start the overlay process again. instead just update the text
         $gOverlay.Visibility = "Visible"
         $spOverlay.Visibility = "Visible"
+        $dgUpdates.Visibility = "Collapsed"
+        $tbInfo.Visibility = "Collapsed"
 
         $progressRunspace = [runspacefactory]::CreateRunspace()
         $progressRunspace.ApartmentState = "STA"

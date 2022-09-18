@@ -129,7 +129,7 @@
 
         <TextBlock Grid.Row="1" x:Name="tbInfo" HorizontalAlignment="Left" Margin="5" VerticalAlignment="Center"></TextBlock>
 
-        <DataGrid Grid.Row="2" FontSize="11" AutoGenerateColumns="False" x:Name="dgUpdates" AlternatingRowBackground="lightgray" IsReadOnly="true" Margin="5" IsEnabled="True" HeadersVisibility="Column" CanUserResizeRows="False" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" MaxHeight="350">
+        <DataGrid Grid.Row="2" FontSize="11" AutoGenerateColumns="False" x:Name="dgUpdates" AlternatingRowBackground="lightgray" IsReadOnly="true" Margin="5" IsEnabled="True" HeadersVisibility="Column" CanUserResizeRows="False" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalAlignment="Stretch" VerticalScrollBarVisibility="Visible" MaxHeight="350" Visibility="Collapsed">
             <DataGrid.Columns>
                 <DataGridTemplateColumn>
                     <DataGridTemplateColumn.Header>
