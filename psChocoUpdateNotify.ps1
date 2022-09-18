@@ -7,7 +7,10 @@ param (
     [Parameter(Mandatory=$false)]
     [string]
     [ValidateSet("GUI","Notification")]
-    $Mode = "Notification"
+    $Mode = "Notification",
+
+    [Parameter(Mandatory=$false)]
+    [switch]$IgnoreStartupChecks
 )
 
 $ErrorActionPreference = "Stop"
@@ -39,9 +42,11 @@ if ($Mode -eq "Notification") {
     $ProtocolHandlerGUIDesiredValue = "cscript.exe `"$(Join-Path $script:projectRootFolder 'psChocoUpdateNotifyGUI.vbs')`""
     $LogonTask = Get-ScheduledTask -TaskName "psChocoUpdateNotify-Logon" -TaskPath "\psChocoUpdateNotify\" -ErrorAction SilentlyContinue
 
-    if ([String]::IsNullOrWhiteSpace($ProtocolHandlerUpdate) -or [String]::IsNullOrWhiteSpace($ProtocolHandlerGUI) -or
-        $ProtocolHandlerUpdate -ne $ProtocolHandlerUpdateDesiredValue -or $ProtocolHandlerGUI -ne $ProtocolHandlerGUIDesiredValue -or
-        $null -eq $LogonTask) {
+    if ( $IgnoreStartupChecks.IsPresent -eq $false -and                                                                                 # Check if we should update things
+        ([String]::IsNullOrWhiteSpace($ProtocolHandlerUpdate) -or [String]::IsNullOrWhiteSpace($ProtocolHandlerGUI) -or                 # Paths are present
+        $ProtocolHandlerUpdate -ne $ProtocolHandlerUpdateDesiredValue -or $ProtocolHandlerGUI -ne $ProtocolHandlerGUIDesiredValue -or   # Values are correct
+        $null -eq $LogonTask)                                                                                                           # Task is present (do not check the task itself. This means you can do changes to the task if you wish to, without loosing them on an update)
+        ) {                                                                                    
 
         $sh = New-Object -ComObject "Wscript.Shell"
         $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path/the scheduled task needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers or the task!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis window will autoclose with 'Yes' in 120 seconds",120,"Protocol Handler/scheduled task install/update",3+32)
