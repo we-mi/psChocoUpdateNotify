@@ -1,9 +1,10 @@
 # psChocoUpdateNotify
+
 Searches for chocolatey package updates and notifies the user about it. Includes a GUI where you can choose what to update
 
 ## Install
 
-You can install this script as a module through the powershell gallery
+As a **module** through powershell gallery (preferred):
 
 `Install-Module -Name psChocoUpdateNotify -Scope AllUsers`
 
@@ -12,11 +13,18 @@ and then start the script with `Start-PSChocoUpdateNotify`
 *or*
 
 [Download](https://github.com/we-mi/psChocoUpdateNotify/archive/refs/heads/main.zip) and extract this project, then start the file `psChocoUpdateNotify.ps1`.
+
 ## Usage
 
 Be sure to set your [ExecutionPolicy](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies) accordingly or this script might not start.
 
-You might want to start this script as a scheduled task at logon.
+If you want to start this script in `Notification`-Mode use `psChocoUpdateNotify.ps1 -Mode Notification` or `Start-PSChocoUpdateNotify -Mode Notification` depending on your installation type
+
+You can start the GUI with `psChocoUpdateNotify.ps1 -Mode GUI` or `Start-PSChocoUpdateNotify -Mode GUI`.
+
+`Notification`-Mode is the default Mode.
+
+You can choose to disable the start-up-checks (see Hints below) with `-IgnoreStartUpChecks`. This might be useful if you do not wish to use the protocol handlers or the scheduled task.
 
 ## Hints
 
