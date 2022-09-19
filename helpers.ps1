@@ -545,15 +545,11 @@ function Test-ChocolateyInstall {
     [CmdletBinding()]
     [OutputType([boolean])]
 
+    # Just doing a lazy check here. If it is not found in $PATH it won't work anyway
 
-    $proc = $null
-    try {
-        $proc = Start-Process -FilePath "choco" -ArgumentList "-v" -Wait -PassThru -NoNewWindow -RedirectStandardOutput "NUL" -ErrorAction SilentlyContinue
-    } catch {
-        return $false
-    }
-
-    if ($null -eq $proc -or $proc.ExitCode -ne 0) { # choco not found
+    $choco = Get-Command -Name choc2o -CommandType Application -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+    
+    if ( $null -eq $choco -or [String]::IsNullOrWhiteSpace($choco) ) { # choco not found
         return $false
     } else { # choco found
         return $true

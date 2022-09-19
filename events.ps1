@@ -44,6 +44,12 @@ $window.Add_Loaded({
         $script:ChocolateyInstalled = $True
     } else {
         $dgUpdates.Visibility = "Collapsed"
+        $bControlSearch.IsEnabled = $False
+        $bControlUpdate.IsEnabled = $False
+        $cbSilent.IsEnabled = $False
+        $cbHidden.IsEnabled = $False
+        $cbWhatIf.IsEnabled = $False
+
         $tbInfo.Visibility = "Visible"
         $bChocoPage.Visibility = "Visible"
         $tbInfo.Text = "Chocolatey was not found on your system.`nYou can install it by visiting chocolatey.org and follow the instructions"
