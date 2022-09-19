@@ -547,7 +547,7 @@ function Test-ChocolateyInstall {
 
     # Just doing a lazy check here. If it is not found in $PATH it won't work anyway
 
-    $choco = Get-Command -Name choc2o -CommandType Application -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+    $choco = Get-Command -Name choco -CommandType Application -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
     
     if ( $null -eq $choco -or [String]::IsNullOrWhiteSpace($choco) ) { # choco not found
         return $false
