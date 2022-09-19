@@ -24,7 +24,7 @@ $ErrorActionPreference = "Stop"
 . "$PSScriptRoot\helpers.ps1"
 
 # Define GUI version
-$script:version = "1.1.4"
+$script:version = "1.1.5"
 
 # Define some other useful variables
 $script:projectRootFolder = $PSScriptRoot
