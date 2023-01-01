@@ -9,8 +9,17 @@ param (
     [ValidateSet("GUI","Notification")]
     $Mode = "Notification",
 
+    [Parameter(
+        Mandatory = $false
+    )]
+    [System.IO.FileInfo]
+    $settingsFile = (Join-Path $env:APPDATA "psChocoUpdateNotify\settings.json"),
+
     [Parameter(Mandatory=$false)]
-    [switch]$IgnoreStartupChecks
+    [switch]$IgnoreStartupChecks,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$SkipGUIInitialSearch
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,13 +30,31 @@ $ErrorActionPreference = "Stop"
 [void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
 
 # Loading helper functions
-. "$PSScriptRoot\helpers.ps1"
+. (Join-Path $PSScriptRoot "helpers.ps1")
 
 # Define GUI version
-$script:version = "1.1.5"
+$script:version = "1.1.6b"
 
 # Define some other useful variables
 $script:projectRootFolder = $PSScriptRoot
+
+# Load settings.json
+if (Test-Path $settingsFile ) {
+    $script:settings = Get-Content -Encoding UTF8 -Path $settingsFile | ConvertFrom-Json
+
+    if ($null -eq $settings) {
+        $settings = [PSCustomObject]@{}
+    }
+    $settings = Test-Settings -settings $settings
+
+} else { # if non-existant: create dir and default-configfile
+
+    if (-not (Test-Path (Split-Path $settingsFile) ) ) {
+        New-Item -ItemType Directory (Split-Path $settingsFile)
+    }
+
+    $settings = Test-Settings # this will create all default settings
+}
 
 if ($Mode -eq "Notification") {
     Import-Module (Join-Path $script:projectRootFolder ".\BurntToast\BurntToast.psd1")
@@ -141,7 +168,7 @@ Remove-PSDrive -Name HKCR
     # Load XAML File
     Write-Logs -Message "Loading xml for mainWindow (window.xaml)" -Loglevel "debug"
     try {
-        $xaml = [xml](Get-Content (Join-Path $script:projectRootFolder "window.xaml") -ErrorAction Stop)
+        $xaml = [xml](Get-Content (Join-Path $script:projectRootFolder "windows\mainWindow\window.xaml") -ErrorAction Stop)
         $window = [Windows.Markup.XamlReader]::Load( (New-Object System.Xml.XmlNodeReader $xaml) )
     } catch [System.Management.Automation.RuntimeException] {
         if ($_.CategoryInfo.Reason -eq "RuntimeException") { # file could not be parsed as a xml
@@ -167,9 +194,11 @@ Remove-PSDrive -Name HKCR
 
     # Load events for the main window
     Write-Logs -Message "Load events-file for mainWindow" -Loglevel "debug"
-    . (Join-Path $PSScriptRoot "events.ps1")
+    . (Join-Path $script:projectRootFolder "windows\mainWindow\events.ps1")
 
     # Show the main window
     Write-Logs -Message "Displaying mainWindow" -Loglevel "debug"
     [void]$window.ShowDialog()
 }
+
+$settings | ConvertTo-Json | Out-File -Encoding UTF8 -FilePath $settingsFile

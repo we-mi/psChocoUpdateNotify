@@ -41,3 +41,7 @@ The path to the protocol handlers are:
 
 - `HKEY_CLASSES_ROOT\psChocoUpdateNotifyUpdate`
 - `HKEY_CLASSES_ROOT\psChocoUpdateNotifyGUI`
+
+## Credits/Acknowledgements
+
+The 'hot chocolate' logo in the main window, in the notification-window and in the taskbar was designed by kerismaker and can be found [here](https://www.flaticon.com/free-icons/hot-chocolate)
