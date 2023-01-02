@@ -57,6 +57,16 @@ if (Test-Path $settingsFile ) {
 }
 
 if ($Mode -eq "Notification") {
+    # BurntToast-Module requires Windows 10 or Server 2019. Show a warning on other operating systems
+    [int]$buildNumber = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\" -Name CurrentBuildNumber | Select-Object -ExpandProperty CurrentBuildNumber
+    if ($buildNumber -lt 17763) {
+        $answer = [System.Windows.Forms.MessageBox]::Show("This program requires at least Windows 10 1809 or Windows Server 2019 (Build number 17763 or higher)`n`nOther operating systems were not tested.`nProceed on your own, if you wish to continue?", "Operating system warning", "YesNo", "Warning")
+        if ($answer -ne "Yes") {
+            Write-Host  "Cancel start on user-choice"
+            Exit 0
+        }
+    }
+
     Import-Module (Join-Path $script:projectRootFolder ".\BurntToast\BurntToast.psd1")
 
     if (Test-ChocolateyInstall) {
@@ -74,7 +84,7 @@ if ($Mode -eq "Notification") {
             ([String]::IsNullOrWhiteSpace($ProtocolHandlerUpdate) -or [String]::IsNullOrWhiteSpace($ProtocolHandlerGUI) -or                 # Paths are present
             $ProtocolHandlerUpdate -ne $ProtocolHandlerUpdateDesiredValue -or $ProtocolHandlerGUI -ne $ProtocolHandlerGUIDesiredValue -or   # Values are correct
             $null -eq $LogonTask)                                                                                                           # Task is present (do not check the task itself. This means you can do changes to the task if you wish to, without loosing them on an update)
-            ) {                                                                                    
+            ) {
 
             $sh = New-Object -ComObject "Wscript.Shell"
             $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path/the scheduled task needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers or the task!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis window will autoclose with 'Yes' in 120 seconds",120,"Protocol Handler/scheduled task install/update",3+32)
