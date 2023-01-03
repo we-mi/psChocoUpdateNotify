@@ -82,8 +82,12 @@
                             <Label DockPanel.Dock="Top" x:Name="lPackageVersion" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"></Label>
                         </DockPanel>
                         <DockPanel>
-                            <Label DockPanel.Dock="Top" VerticalAlignment="Bottom" FontSize="10" HorizontalAlignment="Center"></Label>
-                            <Label DockPanel.Dock="Top" x:Name="lTest" VerticalAlignment="Top" FontSize="12" HorizontalAlignment="Center"></Label>
+                            <Label DockPanel.Dock="Top" VerticalAlignment="Bottom" FontSize="10" HorizontalAlignment="Center">-</Label>
+                            <Label DockPanel.Dock="Top" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center">-</Label>
+                        </DockPanel>
+                        <DockPanel>
+                            <Label DockPanel.Dock="Top" VerticalAlignment="Bottom" FontSize="10" HorizontalAlignment="Center">PackageRepo (Source)</Label>
+                            <Label DockPanel.Dock="Top" x:Name="lPackageRepo" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"></Label>
                         </DockPanel>
                     </DockPanel>
                 </Grid>
