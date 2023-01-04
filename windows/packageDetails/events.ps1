@@ -38,9 +38,11 @@ $packageDetailsWindow.Add_ContentRendered({
         $Results += $WebResult
     }
 
-    if ($Results.Count -gt 1) {
-        [System.Windows.Forms.MessageBox]::Show("More than one package of '$($lPackageID.Content)' version '$($lPackageVersion.Content)' was found, maybe due to multiple repositories. `nOnly the first package is shown here", "Multiple packages", "OK","Information")
-    } elseif ($Results.Count -eq 1) {
+    if ($Results.Count -ge 1) {
+
+        if ($Results.Count -gt 1) {
+            [System.Windows.Forms.MessageBox]::Show("More than one package of '$($lPackageID.Content)' version '$($lPackageVersion.Content)' was found, maybe due to multiple repositories. `nOnly the first found package is shown here", "Multiple packages", "OK","Information")
+        }
 
         $Result = $Results[0]
 
@@ -130,7 +132,9 @@ $packageDetailsWindow.Add_ContentRendered({
                 $hReleaseNotes.Cursor = $null
             }
 
-            $tbCopyright.Text = $result.properties.Copyright
+            if ($result.properties.Copyright.null -ne "true") {
+                $tbCopyright.Text = $result.properties.Copyright
+            }
 
             $tbTags.Text = $result.properties.Tags.'#text'
             $tbDependencies.Text = $result.properties.Dependencies
