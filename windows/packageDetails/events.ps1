@@ -150,21 +150,3 @@ $packageDetailsWindow.Add_ContentRendered({
     $gPackageDetailsOverlay.Visibility = "Hidden"
 
 })
-
-$gPackageDetailsOverlay.Add_IsVisibleChanged({
-    # use this for triggering certain functions depending on the current action
-
-    switch ($this.Visibility) {
-        "Visible" { # action is starting
-
-        }
-
-        "Collapsed" { # action has finished
-            switch ($script:uiHash.currentAction) {
-                "AfterInstall" { # Install the updates has finished. Trigger a second search
-                    Update-PackageList
-                }
-            }
-        }
-    }
-})
