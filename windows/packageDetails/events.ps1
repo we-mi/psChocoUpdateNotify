@@ -41,7 +41,7 @@ $packageDetailsWindow.Add_ContentRendered({
     if ($Results.Count -ge 1) {
 
         if ($Results.Count -gt 1) {
-            [System.Windows.Forms.MessageBox]::Show("More than one package of '$($lPackageID.Content)' version '$($lPackageVersion.Content)' was found, maybe due to multiple repositories. `nOnly the first found package is shown here", "Multiple packages", "OK","Information")
+            [System.Windows.Forms.MessageBox]::Show("More than one package of '$($lPackageID.Content)' version '$($lPackageVersion.Content)' was found, maybe due to multiple choco sources. `nOnly the first found package is shown here", "Multiple packages", "OK","Information")
         }
 
         $Result = $Results[0]
@@ -50,7 +50,7 @@ $packageDetailsWindow.Add_ContentRendered({
             $lPackageRepo.Content = $result.properties.Repository
             $tbPackageTitle.Text = $result.properties.Title
             $tbPackageAuthors.Text = $result.Author.name
-            $tbLastUpdated.Text = $result.updated
+            $tbLastUpdated.Text = Get-Date($result.properties.Created.'#text') -Format "ddd dd. MMM yyyy HH:mm:ss"
 
             if ($result.properties.ProjectUrl -match $urlRegEx) {
                 $hProjectUrl.NavigateUri = $hProjectUrl.Tooltip = $tbProjectUrl.Text = $result.properties.ProjectUrl
@@ -134,10 +134,24 @@ $packageDetailsWindow.Add_ContentRendered({
 
             if ($result.properties.Copyright.null -ne "true") {
                 $tbCopyright.Text = $result.properties.Copyright
+            } else {
+                $lCopyright.IsEnabled = $tbCopyright.IsEnabled = $False
+                $tbCopyright.Text = "N/A"
             }
 
             $tbTags.Text = $result.properties.Tags.'#text'
+            $tbTags.Text = $tbTags.Text.Trim()
+            if ( [String]::IsNullOrWhiteSpace($tbTags.Text) ) {
+                $lTags.IsEnabled = $tbTags.IsEnabled = $False
+                $tbTags.Text = "N/A"
+            }
+
             $tbDependencies.Text = $result.properties.Dependencies
+            if ( [String]::IsNullOrWhiteSpace($tbDependencies.Text) ) {
+                $lDependencies.IsEnabled = $tbDependencies.IsEnabled = $False
+                $tbDependencies.Text = "N/A"
+            }
+
             $cbRequireLicenseAcceptance.IsChecked = [bool]$result.properties.RequireLicenseAcceptance.'#text'
 
             $tbSummary.Text = $result.summary.'#text'

@@ -61,38 +61,38 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Grid.Row="0" Orientation="Horizontal" Background="Azure">
-            <Border>
+        <DockPanel Grid.Row="0" Background="Azure">
+            <Border BorderThickness="0,0,0,0" BorderBrush="Gray" >
                 <Image x:Name="imgLogo" HorizontalAlignment="Left" Margin="10,10,10,10" Source="C:\Users\WenderMi\Documents\git\github.com\psChocoUpdateNotify\Images\icon_256.png"></Image>
             </Border>
 
-            <Border BorderThickness="1,0,0,0" BorderBrush="Gray" Margin="0,1,0,1">
-                <Grid>
-                    <DockPanel Margin="15,0,15,0" VerticalAlignment="Center">
-                        <DockPanel>
+            <Border Margin="0,1,0,1" HorizontalAlignment="Center">
+                <Grid HorizontalAlignment="Center">
+                    <DockPanel VerticalAlignment="Center">
+                        <DockPanel Margin="15,0,15,0">
                             <Label DockPanel.Dock="Top" VerticalAlignment="Bottom" FontSize="10" HorizontalAlignment="Center">PackageName</Label>
                             <Label DockPanel.Dock="Top" x:Name="lPackageID" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"></Label>
                         </DockPanel>
-                        <DockPanel>
+                        <DockPanel Margin="15,0,15,0">
                             <Label DockPanel.Dock="Top" VerticalAlignment="Bottom" FontSize="10" HorizontalAlignment="Center">-</Label>
-                            <Label DockPanel.Dock="Top" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center">-</Label>
+                            <Label DockPanel.Dock="Top" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"></Label>
                         </DockPanel>
-                        <DockPanel>
+                        <DockPanel Margin="15,0,15,0">
                             <Label DockPanel.Dock="Top" VerticalAlignment="Bottom" FontSize="10" HorizontalAlignment="Center">PackageVersion</Label>
                             <Label DockPanel.Dock="Top" x:Name="lPackageVersion" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"></Label>
                         </DockPanel>
-                        <DockPanel>
+                        <DockPanel Margin="15,0,15,0">
                             <Label DockPanel.Dock="Top" VerticalAlignment="Bottom" FontSize="10" HorizontalAlignment="Center">-</Label>
-                            <Label DockPanel.Dock="Top" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center">-</Label>
+                            <Label DockPanel.Dock="Top" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"></Label>
                         </DockPanel>
-                        <DockPanel>
+                        <DockPanel Margin="15,0,15,0">
                             <Label DockPanel.Dock="Top" VerticalAlignment="Bottom" FontSize="10" HorizontalAlignment="Center">PackageRepo (Source)</Label>
                             <Label DockPanel.Dock="Top" x:Name="lPackageRepo" VerticalAlignment="Top" FontWeight="Bold" FontSize="14" HorizontalAlignment="Center"></Label>
                         </DockPanel>
                     </DockPanel>
                 </Grid>
             </Border>
-        </StackPanel>
+        </DockPanel>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
@@ -111,11 +111,11 @@
                         <TextBox x:Name="tbPackageAuthors" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
                     </DockPanel>
                     <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">Aktualisiert</Label>
+                        <Label MinWidth="100">Erstellt</Label>
                         <TextBox x:Name="tbLastUpdated" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
                     </DockPanel>
                     <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">Tags</Label>
+                        <Label x:Name="lTags" MinWidth="100">Tags</Label>
                         <TextBox x:Name="tbTags" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
                     </DockPanel>
                     <!-- <DockPanel Margin="5,5,15,0">
@@ -171,11 +171,11 @@
                         <TextBox x:Name="tbBugTrackerUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
                     </DockPanel>
                     <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">dependencies</Label>
+                        <Label x:Name="lDependencies" MinWidth="100">dependencies</Label>
                         <TextBox x:Name="tbDependencies" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
                     </DockPanel>
                     <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">copyright</Label>
+                        <Label x:Name="lCopyright" MinWidth="100">copyright</Label>
                         <TextBox x:Name="tbCopyright" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
                     </DockPanel>
                     <DockPanel Margin="5,5,15,0">
