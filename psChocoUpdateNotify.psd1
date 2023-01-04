@@ -12,7 +12,7 @@
 RootModule = './psChocoUpdateNotify.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.1.5'
+ModuleVersion = '1.1.6b'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()

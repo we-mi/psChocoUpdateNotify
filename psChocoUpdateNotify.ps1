@@ -9,8 +9,17 @@ param (
     [ValidateSet("GUI","Notification")]
     $Mode = "Notification",
 
+    [Parameter(
+        Mandatory = $false
+    )]
+    [System.IO.FileInfo]
+    $settingsFile = (Join-Path $env:APPDATA "psChocoUpdateNotify\settings.json"),
+
     [Parameter(Mandatory=$false)]
-    [switch]$IgnoreStartupChecks
+    [switch]$IgnoreStartupChecks,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$SkipGUIInitialSearch
 )
 
 $ErrorActionPreference = "Stop"
@@ -21,15 +30,43 @@ $ErrorActionPreference = "Stop"
 [void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.VisualBasic')
 
 # Loading helper functions
-. "$PSScriptRoot\helpers.ps1"
+. (Join-Path $PSScriptRoot "helpers.ps1")
 
 # Define GUI version
-$script:version = "1.1.5"
+$script:version = "1.1.6b"
 
 # Define some other useful variables
 $script:projectRootFolder = $PSScriptRoot
 
+# Load settings.json
+if (Test-Path $settingsFile ) {
+    $script:settings = Get-Content -Encoding UTF8 -Path $settingsFile | ConvertFrom-Json
+
+    if ($null -eq $settings) {
+        $settings = [PSCustomObject]@{}
+    }
+    $settings = Test-Settings -settings $settings
+
+} else { # if non-existant: create dir and default-configfile
+
+    if (-not (Test-Path (Split-Path $settingsFile) ) ) {
+        New-Item -ItemType Directory (Split-Path $settingsFile)
+    }
+
+    $settings = Test-Settings # this will create all default settings
+}
+
 if ($Mode -eq "Notification") {
+    # BurntToast-Module requires Windows 10 or Server 2019. Show a warning on other operating systems
+    [int]$buildNumber = Get-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\" -Name CurrentBuildNumber | Select-Object -ExpandProperty CurrentBuildNumber
+    if ($buildNumber -lt 17763) {
+        $answer = [System.Windows.Forms.MessageBox]::Show("This program requires at least Windows 10 1809 or Windows Server 2019 (Build number 17763 or higher)`n`nOther operating systems were not tested.`nProceed on your own, if you wish to continue?", "Operating system warning", "YesNo", "Warning")
+        if ($answer -ne "Yes") {
+            Write-Host  "Cancel start on user-choice"
+            Exit 0
+        }
+    }
+
     Import-Module (Join-Path $script:projectRootFolder ".\BurntToast\BurntToast.psd1")
 
     if (Test-ChocolateyInstall) {
@@ -47,7 +84,7 @@ if ($Mode -eq "Notification") {
             ([String]::IsNullOrWhiteSpace($ProtocolHandlerUpdate) -or [String]::IsNullOrWhiteSpace($ProtocolHandlerGUI) -or                 # Paths are present
             $ProtocolHandlerUpdate -ne $ProtocolHandlerUpdateDesiredValue -or $ProtocolHandlerGUI -ne $ProtocolHandlerGUIDesiredValue -or   # Values are correct
             $null -eq $LogonTask)                                                                                                           # Task is present (do not check the task itself. This means you can do changes to the task if you wish to, without loosing them on an update)
-            ) {                                                                                    
+            ) {
 
             $sh = New-Object -ComObject "Wscript.Shell"
             $answer = $sh.Popup("This looks like it's either the first time you're starting this application or some path/the scheduled task needs an update.`n`nYou might be asked for elevated permissions in order to install or update protocol handlers or the task!`n`nDo you want to continue? If you do not click 'Yes' here, some basic things might not work for you!`n`nYes = Go ahead`nNo = Dont install/update`nCancel = exit application`n`nThis window will autoclose with 'Yes' in 120 seconds",120,"Protocol Handler/scheduled task install/update",3+32)
@@ -141,7 +178,7 @@ Remove-PSDrive -Name HKCR
     # Load XAML File
     Write-Logs -Message "Loading xml for mainWindow (window.xaml)" -Loglevel "debug"
     try {
-        $xaml = [xml](Get-Content (Join-Path $script:projectRootFolder "window.xaml") -ErrorAction Stop)
+        $xaml = [xml](Get-Content (Join-Path $script:projectRootFolder "windows\mainWindow\window.xaml") -ErrorAction Stop)
         $window = [Windows.Markup.XamlReader]::Load( (New-Object System.Xml.XmlNodeReader $xaml) )
     } catch [System.Management.Automation.RuntimeException] {
         if ($_.CategoryInfo.Reason -eq "RuntimeException") { # file could not be parsed as a xml
@@ -167,9 +204,11 @@ Remove-PSDrive -Name HKCR
 
     # Load events for the main window
     Write-Logs -Message "Load events-file for mainWindow" -Loglevel "debug"
-    . (Join-Path $PSScriptRoot "events.ps1")
+    . (Join-Path $script:projectRootFolder "windows\mainWindow\events.ps1")
 
     # Show the main window
     Write-Logs -Message "Displaying mainWindow" -Loglevel "debug"
     [void]$window.ShowDialog()
 }
+
+$settings | ConvertTo-Json | Out-File -Encoding UTF8 -FilePath $settingsFile

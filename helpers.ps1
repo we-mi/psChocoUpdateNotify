@@ -328,7 +328,7 @@ function Get-UpdateInfo {
     if ($dtUpdates.Count -le 0) {
         "No updates available :>"
     } else {
-        "$($dtUpdates.Count) $UpdateCountText available $SelectedText"
+        "$($dtUpdates.Count) $UpdateCountText available $SelectedText; Double-Click a package for more info"
     }
 }
 
@@ -553,5 +553,50 @@ function Test-ChocolateyInstall {
         return $false
     } else { # choco found
         return $true
+    }
+}
+
+function Test-Settings {
+    [CmdletBinding()]
+    param (
+        [Parameter(
+            Mandatory = $False
+        )]
+        [PSCustomObject]
+        $settings
+    )
+
+    begin {
+        if ($null -eq $settings) {
+            $settings = [PSCustomObject]@{}
+        }
+    }
+
+    process {
+        if ( !($settings.choco_options) ) {
+            $ChocoOptionsTree = [PSCustomObject]@{
+                silent = $False
+                hidden = $False
+                whatIf = $False
+            }
+            $settings | Add-Member -NotePropertyName "choco_options" -NotePropertyValue $ChocoOptionsTree
+        } else {
+            if ( !($settings.choco_options.psobject.Properties.name -contains "silent") ) { $settings.choco_options | Add-Member -NotePropertyName "silent" -NotePropertyValue $False}
+            if ( !($settings.choco_options.psobject.Properties.name -contains "hidden") ) { $settings.choco_options | Add-Member -NotePropertyName "hidden" -NotePropertyValue $False}
+            if ( !($settings.choco_options.psobject.Properties.name -contains "whatIf") ) { $settings.choco_options | Add-Member -NotePropertyName "whatIf" -NotePropertyValue $False}
+        }
+
+        if ( !($settings.general) ) {
+            $generalTree = [PSCustomObject]@{
+                checkVersionOnStartup = $true
+                ignoreStartUpChecks = $false
+            }
+            $settings | Add-Member -NotePropertyName "general" -NotePropertyValue $generalTree
+        } else {
+            if ( !($settings.general.psobject.Properties.name -contains "checkVersionOnStartup") ) { $settings.general | Add-Member -NotePropertyName "checkVersionOnStartup" -NotePropertyValue $true }
+            if ( !($settings.general.psobject.Properties.name -contains "ignoreStartUpChecks") ) { $settings.general | Add-Member -NotePropertyName "ignoreStartUpChecks" -NotePropertyValue $true }
+        }
+
+        $settings
     }
 }
