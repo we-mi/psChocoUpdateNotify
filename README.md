@@ -2,6 +2,16 @@
 
 Searches for chocolatey package updates and notifies the user about it. Includes a GUI where you can choose what to update
 
+## Features
+
+* Get notified about outdated chocolatey packages through a windows toast notification on every logon ![Toast](doc/img/Toast.png)
+* List all outdated packages in a simple graphical interface  ![GUI](doc/img/GUI.png)
+* Install all or a subset of your outdated packages with three different options
+  * `Silent`: Don't ask for confirmation when updating chocolatey packages (Choco parameter `-y`)
+  * `Hidden`: Don't show the chocolatey window
+  * `WhatIf`: Don't make any changes. This is just for testing purposes
+* Show detailed information about a package when double-clicking it.  ![PackageDetails](doc/img/PackageDetails.png)
+
 ## Install
 
 As a **module** through powershell gallery (preferred):
