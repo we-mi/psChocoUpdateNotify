@@ -2,6 +2,13 @@
 
 Searches for chocolatey package updates and notifies the user about it. Includes a GUI where you can choose what to update
 
+* [Features](#features)
+* [Install](#install)
+* [Update](#update)
+* [Usage](#usage)
+* [Hints](#hints)
+* [Credits/Acknowledgements](#creditsacknowledgements)
+
 ## Features
 
 * Get notified about outdated chocolatey packages through a windows toast notification on every logon ![Toast](doc/img/Toast.png)
