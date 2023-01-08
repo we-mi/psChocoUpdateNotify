@@ -586,17 +586,66 @@ function Test-Settings {
             if ( !($settings.choco_options.psobject.Properties.name -contains "whatIf") ) { $settings.choco_options | Add-Member -NotePropertyName "whatIf" -NotePropertyValue $False}
         }
 
+        if ( !($settings.updater) ) {
+            $updaterTree = [PSCustomObject]@{
+                checkVersionOnStartup = $true
+                proxy = $null
+                proxyUserName = $null
+                proxyPassword = $null
+                timeout = 5
+            }
+            $settings | Add-Member -NotePropertyName "updater" -NotePropertyValue $updaterTree
+        } else {
+            if ( !($settings.updater.psobject.Properties.name -contains "checkVersionOnStartup") ) { $settings.updater | Add-Member -NotePropertyName "checkVersionOnStartup" -NotePropertyValue $true }
+            if ( !($settings.updater.psobject.Properties.name -contains "proxy") ) { $settings.updater | Add-Member -NotePropertyName "proxy" -NotePropertyValue $null }
+            if ( !($settings.updater.psobject.Properties.name -contains "proxyUserName") ) { $settings.updater | Add-Member -NotePropertyName "proxyUserName" -NotePropertyValue $null }
+            if ( !($settings.updater.psobject.Properties.name -contains "proxyPassword") ) { $settings.updater | Add-Member -NotePropertyName "proxyPassword" -NotePropertyValue $null }
+            if ( !($settings.updater.psobject.Properties.name -contains "timeout") ) { $settings.updater | Add-Member -NotePropertyName "timeout" -NotePropertyValue 5 }
+        }
+
         if ( !($settings.general) ) {
             $generalTree = [PSCustomObject]@{
-                checkVersionOnStartup = $true
                 ignoreStartUpChecks = $false
             }
             $settings | Add-Member -NotePropertyName "general" -NotePropertyValue $generalTree
         } else {
-            if ( !($settings.general.psobject.Properties.name -contains "checkVersionOnStartup") ) { $settings.general | Add-Member -NotePropertyName "checkVersionOnStartup" -NotePropertyValue $true }
             if ( !($settings.general.psobject.Properties.name -contains "ignoreStartUpChecks") ) { $settings.general | Add-Member -NotePropertyName "ignoreStartUpChecks" -NotePropertyValue $true }
         }
 
         $settings
+    }
+}
+
+function Test-Version {
+    $RestSplat = @{
+        Uri = "https://api.github.com/repos/we-mi/psChocoUpdateNotify/releases"
+        TimeoutSec = $settings.updater.timeout
+    }
+
+    if ( -not [String]::IsNullOrWhiteSpace($settings.updater.proxy) ) {
+        $RestSplat.Proxy = $settings.updater.proxy
+
+        if ( -not [String]::IsNullOrWhiteSpace($settings.updater.proxyUserName) -and -not [String]::IsNullOrWhiteSpace($settings.updater.proxyPassword)) {
+            $cred = New-Object System.Management.Automation.PSCredential -ArgumentList $settings.updater.proxyUserName, (ConvertTo-SecureString $settings.updater.proxyPassword -AsPlainText -Force)
+            $RestSplat.ProxyCredential = $cred
+        }   
+    }   
+
+    try {
+        $result = Invoke-RestMethod @RestSplat
+        if ($result) {
+            $GitHubVersion = [version]($result.name -replace '^v')
+
+            if ( [version]$script:version -lt $GitHubVersion ) {
+                return $GitHubVersion
+            } else {
+                return $null
+            }
+        
+        } else {
+            return $null
+        }
+    } catch {
+        return $null
     }
 }

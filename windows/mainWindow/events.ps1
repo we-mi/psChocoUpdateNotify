@@ -4,6 +4,7 @@ $window.Add_Loaded({
     $imgSearch.Source = (Join-Path $script:projectRootFolder "Images\Search.png")
     $imgUpdate.Source = (Join-Path $script:projectRootFolder "Images\Update.png")
     $imgHelp.Source = (Join-Path $script:projectRootFolder "Images\Help.png")
+    $imgUpdateAvail.Source = (Join-Path $script:projectRootFolder "Images\Information.png")
 
     # This is the icon in the upper left hand corner of the app
     $this.Icon = (Join-Path $script:projectRootFolder "Images\icon_256.png")
@@ -61,6 +62,14 @@ $window.Add_Loaded({
         $tbInfo.Text = "Chocolatey was not found on your system.`nYou can install it by visiting chocolatey.org and follow the instructions"
 
         $script:ChocolateyInstalled = $False
+    }
+
+    if ($settings.updater.checkVersionOnStartup -ne $False) {
+        $GitHubVersion = Test-Version
+        if ($null -ne $GitHubVersion ) {
+            $bUpdateAvail.Parent.Visibility = "Visible"
+            $bUpdateAvail.Tooltip = "New version '$($GitHubVersion.ToString())' is available"
+        }
     }
 })
 
@@ -191,4 +200,12 @@ $cbUpdateAll.Add_Unchecked({
 
 $bChocoPage.Add_Click({
     Start-Process 'https://chocolatey.org/install'
+})
+
+$bUpdateAvail.Add_Click({
+    $answer = [System.Windows.Forms.MessageBox]::Show("Would you like to be redirected to the GitHub-Releases page?`n`nPlease also consult the Readme for this project in the root folder and how to update this program.", "New version available","YesNo","Information")
+
+    if ($answer -eq "Yes") {
+        Start-Process 'https://github.com/we-mi/psChocoUpdateNotify/releases'
+    }
 })
