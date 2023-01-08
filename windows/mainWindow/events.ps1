@@ -113,6 +113,12 @@ $cbWhatIf.Add_Click({
 
 $dgUpdates.Add_MouseDoubleClick({
     if ($dgUpdates.SelectedItems.Count -eq 1) {
+
+        # Load assembly for the markdown renderer
+        Add-Type -Path (Join-Path $script:projectRootFolder "res\dll\net5.0-windows7.0\MdXaml.dll")
+        Add-Type -Path (Join-Path $script:projectRootFolder "res\dll\net6.0-windows7.0\ICSharpCode.AvalonEdit.dll")
+        Add-Type -Path (Join-Path $script:projectRootFolder "res\dll\net5.0-windows7.0\MdXaml.Plugins.dll")
+
         # Load XAML File
         Write-Logs -Message "Loading xml for packageDetails (window.xaml)" -Loglevel "debug"
         try {

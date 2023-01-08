@@ -155,7 +155,7 @@ $packageDetailsWindow.Add_ContentRendered({
             $cbRequireLicenseAcceptance.IsChecked = [bool]$result.properties.RequireLicenseAcceptance.'#text'
 
             $tbSummary.Text = $result.summary.'#text'
-            $tbDescription.Text = $result.properties.Description
+            $mdxamDescription.Markdown = $tbDescription.Text = $result.properties.Description
         }
     } else {
         [System.Windows.Forms.MessageBox]::Show("No package with the name '$($lPackageID.Content)' and version '$($lPackageVersion.Content)' was found. This should not have happened oO", "No package information found", "OK","Error")
@@ -163,4 +163,16 @@ $packageDetailsWindow.Add_ContentRendered({
 
     $gPackageDetailsOverlay.Visibility = "Hidden"
 
+})
+
+$cbViewMarkdown.Add_Unchecked({
+    $tbDescription.Visibility = "Collapsed"
+    $mdxamDescription.Visibility = "Visible"
+    $mdxamDescription.Markdown = $tbDescription.Text
+
+})
+
+$cbViewMarkdown.Add_Checked({
+    $tbDescription.Visibility = "Visible"
+    $mdxamDescription.Visibility = "Collapsed"
 })
