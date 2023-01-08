@@ -54,4 +54,9 @@ The path to the protocol handlers are:
 
 ## Credits/Acknowledgements
 
-The 'hot chocolate' logo in the main window, in the notification-window and in the taskbar was designed by kerismaker and can be found [here](https://www.flaticon.com/free-icons/hot-chocolate)
+The 'hot chocolate' logo in the main window, in the notification-window and in the taskbar was designed by kerismaker and can be found [here](https://www.flaticon.com/free-icons/hot-chocolate).
+
+The following 3rd party components are used in this project
+
+* [MdXaml](https://github.com/whistyun/MdXaml); Released under the [MIT-License](https://github.com/whistyun/MdXaml/blob/master/LICENSE.txt); Used for rendering Markdown-Text
+* [AvalonEdit](https://github.com/icsharpcode/AvalonEdit); Released under the [MIT-License](https://github.com/icsharpcode/AvalonEdit/blob/master/LICENSE); Used as a dependency for MdXaml
