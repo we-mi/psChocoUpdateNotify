@@ -12,7 +12,7 @@
 RootModule = './psChocoUpdateNotify.psm1'
 
 # Version number of this module.
-ModuleVersion = '1.2.0'
+ModuleVersion = '1.2.1'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -109,7 +109,7 @@ PrivateData = @{
         # IconUri = ''
 
         # ReleaseNotes of this module
-        # ReleaseNotes = ''
+        ReleaseNotes = 'https://github.com/we-mi/psChocoUpdateNotify/releases'
 
         # Prerelease string of this module
         # Prerelease = ''

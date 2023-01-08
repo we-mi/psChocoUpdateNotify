@@ -14,15 +14,37 @@ Searches for chocolatey package updates and notifies the user about it. Includes
 
 ## Install
 
-As a **module** through powershell gallery (preferred):
+The first mentioned method is the preferred method.  
+The last mentioned method is the least preferred method.
 
-`Install-Module -Name psChocoUpdateNotify -Scope AllUsers`
+### As a powershell module
 
-and then start the script with `Start-PSChocoUpdateNotify`
+Simply run `Install-Module -Name psChocoUpdateNotify -Scope AllUsers` and then start the script with `Start-PSChocoUpdateNotify` in any powershell session.
 
-*or*
+### Manual
 
-[Download](https://github.com/we-mi/psChocoUpdateNotify/archive/refs/heads/main.zip) and extract this project, then start the file `psChocoUpdateNotify.ps1`.
+1. Open the [Releases-Page](https://github.com/we-mi/psChocoUpdateNotify/releases) and download the latest Source-Code ZIP-File.
+2. Extract the ZIP-File to a destination of your choice.
+3. Open the extracted folder, right-click the file `psChocoUpdate-Notify.ps1` and choose `Run with powershell`
+
+### Other
+
+If you know what you're doing you can [Download](https://github.com/we-mi/psChocoUpdateNotify/archive/refs/heads/main.zip) the latest source code and start it the same way as described in the [manual](#manual) method.
+
+## Update
+
+### As a powershell module
+
+This is as simple as running `Update-Module psChocoUpdateNotify`.
+
+You might need to reopen your powershell session or unload the old module with `Remove-Module psChocoUpdateNotify` in order to have powershell use the new module.
+
+### Manual
+
+1. Open the [Releases-Page](https://github.com/we-mi/psChocoUpdateNotify/releases) and download the latest Source-Code ZIP-File.
+2. Extract the ZIP-File to a destination of your choice.
+   1. You *can* use the same folder and just replace the old files to skip the first start-questions, except something fundamental changed), but you can just use another folder.
+3. Open the extracted folder, right-click the file `psChocoUpdate-Notify.ps1` and choose `Run with powershell`
 
 ## Usage
 
@@ -54,4 +76,9 @@ The path to the protocol handlers are:
 
 ## Credits/Acknowledgements
 
-The 'hot chocolate' logo in the main window, in the notification-window and in the taskbar was designed by kerismaker and can be found [here](https://www.flaticon.com/free-icons/hot-chocolate)
+The 'hot chocolate' logo in the main window, in the notification-window and in the taskbar was designed by kerismaker and can be found [here](https://www.flaticon.com/free-icons/hot-chocolate).
+
+The following 3rd party components are used in this project
+
+* [MdXaml](https://github.com/whistyun/MdXaml); Released under the [MIT-License](https://github.com/whistyun/MdXaml/blob/master/LICENSE.txt); Used for rendering Markdown-Text
+* [AvalonEdit](https://github.com/icsharpcode/AvalonEdit); Released under the [MIT-License](https://github.com/icsharpcode/AvalonEdit/blob/master/LICENSE); Used as a dependency for MdXaml
