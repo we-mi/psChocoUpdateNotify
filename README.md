@@ -4,25 +4,37 @@ Searches for chocolatey package updates and notifies the user about it. Includes
 
 * [Features](#features)
 * [Install](#install)
+  * [As a powershell module](#as-a-powershell-module)
+  * [Manual](#manual)
+  * [Other](#other)
 * [Update](#update)
+  * [As a powershell module](#as-a-powershell-module-1)
+  * [Manual](#manual-1)
 * [Usage](#usage)
-* [Hints](#hints)
+  * [First Start](#first-start)
+  * [Settings](#settings)
+  * [Parameters](#parameters)
 * [Credits/Acknowledgements](#creditsacknowledgements)
 
 ## Features
 
-* Get notified about outdated chocolatey packages through a windows toast notification on every logon ![Toast](doc/img/Toast.png)
-* List all outdated packages in a simple graphical interface  ![GUI](doc/img/GUI.png)
+* Get notified about outdated chocolatey packages through a windows toast notification on every logon  
+  ![Toast](doc/img/Toast.png)
+* List all outdated packages in a simple graphical interface  
+  ![GUI](doc/img/GUI.png)
 * Install all or a subset of your outdated packages with three different options
   * `Silent`: Don't ask for confirmation when updating chocolatey packages (Choco parameter `-y`)
   * `Hidden`: Don't show the chocolatey window
   * `WhatIf`: Don't make any changes. This is just for testing purposes
-* Show detailed information about a package when double-clicking it.  ![PackageDetails](doc/img/PackageDetails.png)
+* Show detailed information about a package when double-clicking it.  
+  ![PackageDetails](doc/img/PackageDetails.png)
 
 ## Install
 
 The first mentioned method is the preferred method.  
 The last mentioned method is the least preferred method.
+
+You might want to have a look at [first start](#first-start) after the installation
 
 ### As a powershell module
 
@@ -30,7 +42,7 @@ Simply run `Install-Module -Name psChocoUpdateNotify -Scope AllUsers` and then s
 
 ### Manual
 
-1. Open the [Releases-Page](https://github.com/we-mi/psChocoUpdateNotify/releases) and download the latest Source-Code ZIP-File.
+1. Open the [Releases-Page](https://github.com/we-mi/psChocoUpdateNotify/releases) and download the latest ZIP-File.
 2. Extract the ZIP-File to a destination of your choice.
 3. Open the extracted folder, right-click the file `psChocoUpdate-Notify.ps1` and choose `Run with powershell`
 
@@ -48,38 +60,64 @@ You might need to reopen your powershell session or unload the old module with `
 
 ### Manual
 
-1. Open the [Releases-Page](https://github.com/we-mi/psChocoUpdateNotify/releases) and download the latest Source-Code ZIP-File.
+1. Open the [Releases-Page](https://github.com/we-mi/psChocoUpdateNotify/releases) and download the latest ZIP-File.
 2. Extract the ZIP-File to a destination of your choice.
    1. You *can* use the same folder and just replace the old files to skip the first start-questions, except something fundamental changed), but you can just use another folder.
 3. Open the extracted folder, right-click the file `psChocoUpdate-Notify.ps1` and choose `Run with powershell`
 
 ## Usage
 
+The usage is mostly self explanatory, so I will only mention the non-self-explanatory points.  
+If you feel like something was not mentioned or is unclear, please create an [issue](https://github.com/we-mi/psChocoUpdateNotify/issues/new).
+
+### First Start
+
 Be sure to set your [ExecutionPolicy](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_execution_policies) accordingly or this script might not start.
 
-If you want to start this script in `Notification`-Mode use `psChocoUpdateNotify.ps1 -Mode Notification` or `Start-PSChocoUpdateNotify -Mode Notification` depending on your installation type
+You will get a notification window on your first start, which will warn you that some basic things are not setup yet or have been changed (maybe due to an update).  
+![First-Start-Popup](doc/img/FirstStartPopup.png)
 
-You can start the GUI with `psChocoUpdateNotify.ps1 -Mode GUI` or `Start-PSChocoUpdateNotify -Mode GUI`.
+If you click `Yes` here, you might get asked for elevated permissions in order to update values in the registry (see below) and create a scheduled task.
 
-`Notification`-Mode is the default Mode.
+These "basic things" includes:
 
-You can choose to disable the start-up-checks (see Hints below) with `-IgnoreStartUpChecks`. This might be useful if you do not wish to use the protocol handlers or the scheduled task.
+* The presence of two protocol handlers.
+  * They are needed when you click on `Update` or `GUI` in the notification window and are currently the only (?) way to execute code when you click on a button in a notification window created with the [BurntToast-Module](https://github.com/Windos/BurntToast).  
+  * You can choose to disable this notification window and don't install the protocol handlers, but clicking the buttons `Update` or `GUI` in [this](doc/img/Toast.png) Notification won't work at all or not the way you expect it to work.  
+  * The protocol handlers are located in `HKEY_CLASSES_ROOT\psChocoUpdateNotifyUpdate` and `HKEY_CLASSES_ROOT\psChocoUpdateNotifyGUI`. Feel free to inspect them.
+  * You are able to call the code behind the protocol handlers not only from [this](doc/img/Toast.png) Notification but also if you type `psChocoUpdateNotifyUpdate:` or `psChocoUpdateNotifyGUI:` in the Windows-`Run`-Dialog (`WIN` + `R`). This is **exactly** the same as if you click on `Update` or `GUI`.
+* A scheduled task which runs on every logon
+  * This assures that you get notified regularly.
+  * The scheduled task is located in the folder `psChocoUpdateNotify` in Windows `Scheduled Task`-Management Console.
 
-## Hints
+### Settings
 
-This script will check the existence of two protocol handlers in the registry and a scheduled task. If they do not exist it will create them. You need admin privileges for this, but you will need that anyway if you want to update chocolatey packages.
+Currently most of the settings can only be modified manually and not from within the GUI.
 
-The protocol handlers are called when you click on `Update` or `GUI` in the notification toast.  
-You can even call these handlers from within the Windows `Run`-Dialogue with `psChocoUpdateNotifyUpdate:` or `psChocoUpdateNotifyGUI:`
+These are the settings you can change:
 
-The scheduled task is created in `\psChocoUpdateNotify\psChocoUpdateNotify-Logon` and will trigger at every logon.
+| Section | Name | Description | Default |
+| --- | --- | --- | --- |
+| choco_options | silent | Does not ask for confirmation when updating choco packages (`-y`-parameter for choco.exe). Can be `True` or `False`. Last state of checkbox is saved | `False` |
+| choco_options | hidden | Hides the chocolatey window, automatically enables the `silent`-option. Can be `True` or `False`. Last state of checkbox is saved | `False` |
+| choco_options | whatif | Does not make any changes, this is mainly for testing purposes. Can be `True` or `False`. Last state of checkbox is saved | `False` |
+| general | IgnoreStartUpChecks | Disable the presence-check of the two protocol handlers and the scheduled task. Can be `True` or `False` | `False` |
+| updater | checkVersionOnStartup | Checks if a new version is available on every startup. Can be `True` or `False` | `True` |
+| updater | proxy | Sets a proxy for the update check. Must be a valid proxy-string like `http://myproxy.example.com:3128` | None |
+| updater | proxyUserName | Sets a username for the proxy. Can be any string | None |
+| updater | proxyPassword | Sets a password for the proxy. Can be any string | None |
+| updater | timeout | Sets a timeout in seconds for the update-check | `5` |
 
-The script detects if any change of the protocol handlers and the scheduled task happened and will fix them (you will need admin privileges again...)
+### Parameters
 
-The path to the protocol handlers are:
+You can alter the startup-behaviour with these parameters:
 
-- `HKEY_CLASSES_ROOT\psChocoUpdateNotifyUpdate`
-- `HKEY_CLASSES_ROOT\psChocoUpdateNotifyGUI`
+| Parameter-Name | Description | Default |
+| --- | --- | --- |
+| Mode | Can be `Notification` or `GUI`  Forces the script to start either the Notification or the GUI | `Notification` |
+| IgnoreStartupChecks | Specify to disable the presence-check of the two protocol handlers and the scheduled task | False |
+| SkipGUIInitialSearch |  Skipping the automatic search for update when the GUI starts. Click the button `Search outdated packages` to get a list of outdated packages | False |
+| SettingsFile | Path to the json-settings file | `%APPDATA%\psChocoUpdateNotify\settings.json` |
 
 ## Credits/Acknowledgements
 
