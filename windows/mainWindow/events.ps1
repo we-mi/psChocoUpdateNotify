@@ -15,8 +15,8 @@ $window.Add_Loaded({
 
     # initialize dataTable
     $script:dtUpdates = new-Object System.Data.DataTable
-    [void]$dtUpdates.Columns.Add("DoUpdate") 
-    [void]$dtUpdates.Columns.Add("PackageName") 
+    [void]$dtUpdates.Columns.Add("DoUpdate")
+    [void]$dtUpdates.Columns.Add("PackageName")
     [void]$dtUpdates.Columns.Add("CurrentVersion")
     [void]$dtUpdates.Columns.Add("UpdateVersion")
     $dgUpdates.ItemsSource = $dtUpdates.DefaultView
@@ -27,7 +27,7 @@ $window.Add_Loaded({
     }
 
     if ($SkipGUIInitialSearch.IsPresent -eq $False) {
-        $dgUpdates.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, $ClickHandler)
+        $bControlSearch.AddHandler([System.Windows.Controls.Primitives.ButtonBase]::ClickEvent, $ClickHandler)
     }
 
     $script:uiHash = [hashtable]::Synchronized(@{})
@@ -65,11 +65,28 @@ $window.Add_Loaded({
     }
 
     if ($settings.updater.checkVersionOnStartup -ne $False) {
-        $GitHubVersion = Test-Version
-        if ($null -ne $GitHubVersion ) {
-            $bUpdateAvail.Parent.Visibility = "Visible"
-            $bUpdateAvail.Tooltip = "New version '$($GitHubVersion.ToString())' is available"
+        try {
+            $GitHubVersion = Test-Version
+
+            switch ($GitHubVersion) {
+                $null { # no new version found
+                    Write-Logs -Message "No newer version found: $($script:version)" -LogLevel Info
+                }
+
+                -1 { # failed searching new version
+                    Write-Logs -Message "Failed searching for new version" -LogLevel Error
+                }
+
+                {$_ -is [Version] } { # this version is found
+                    $bUpdateAvail.Parent.Visibility = "Visible"
+                    $bUpdateAvail.Tooltip = "New version '$($GitHubVersion.ToString())' is available"
+                    Write-Logs -Message "Found a new version: $($GitHubVersion.ToString())" -LogLevel Info
+                }
+            }
+        } catch {
+            Write-Logs -Message "Could not search for the latest version. The error message was: $($_)" -LogLevel Warning
         }
+
     }
 })
 
@@ -123,51 +140,46 @@ $cbWhatIf.Add_Click({
 $dgUpdates.Add_MouseDoubleClick({
     if ($dgUpdates.SelectedItems.Count -eq 1) {
 
-        # Load assembly for the markdown renderer
-        Add-Type -Path (Join-Path $script:projectRootFolder "res\dll\net5.0-windows7.0\MdXaml.dll")
-        Add-Type -Path (Join-Path $script:projectRootFolder "res\dll\net6.0-windows7.0\ICSharpCode.AvalonEdit.dll")
-        Add-Type -Path (Join-Path $script:projectRootFolder "res\dll\net5.0-windows7.0\MdXaml.Plugins.dll")
-
         # Load XAML File
-        Write-Logs -Message "Loading xml for packageDetails (window.xaml)" -Loglevel "debug"
+        Write-Logs -Message "Loading xml for packageDetails (window.xaml)" -Loglevel Debug
         try {
             $xaml = [xml](Get-Content (Join-Path $script:projectRootFolder "windows\packageDetails\window.xaml") -ErrorAction Stop)
             $packageDetailsWindow = [Windows.Markup.XamlReader]::Load( (New-Object System.Xml.XmlNodeReader $xaml) )
         } catch [System.Management.Automation.RuntimeException] {
             if ($_.CategoryInfo.Reason -eq "RuntimeException") { # file could not be parsed as a xml
-                Write-Logs -Message "XAML-File could not be parsed as a xml file. Check the XAMl-Content" -Loglevel "error"
+                Write-Logs -Message "XAML-File could not be parsed as a xml file. Check the XAMl-Content" -Loglevel Error
                 return 1
             } elseif ($_.CategoryInfo.Reason -eq "MethodInvocationException") { # Xml could not be loaded by XamlReader
-                Write-Logs -Message "XAML-Content could not be loaded by XamlReader-Object. Check the XAMl-Content" -Loglevel "error"
+                Write-Logs -Message "XAML-Content could not be loaded by XamlReader-Object. Check the XAMl-Content" -Loglevel Error
                 return 1
             } elseif ($_.CategoryInfo.Reason -eq "ItemNotFoundException") {
-                Write-Logs -Message "XAML-File was not found" -Loglevel "error"
+                Write-Logs -Message "XAML-File was not found" -Loglevel Error
                 return 1
             }
         } catch  {
-            Write-Logs -Message "Other error while reading and parsing the XAML-File ($($_.Exception))" -Loglevel "error"
+            Write-Logs -Message "Other error while reading and parsing the XAML-File ($($_.Exception))" -Loglevel Error
             return 1
         }
 
         # Find Window Objects
-        Write-Logs -Message "Converting elements to variables for packageDetailsWindow" -Loglevel "debug"
-        foreach ($node in $xaml.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]")){ 
+        Write-Logs -Message "Converting elements to variables for packageDetailsWindow" -Loglevel Debug
+        foreach ($node in $xaml.SelectNodes("//*[@*[contains(translate(name(.),'n','N'),'Name')]]")){
             New-Variable -Name $node.Name -Value $packageDetailsWindow.FindName($node.Name) -Force -Scope "Script"
         }
 
         # Load events for the main window
-        Write-Logs -Message "Load events-file for packageDetailsWindow" -Loglevel "debug"
+        Write-Logs -Message "Load events-file for packageDetailsWindow" -Loglevel Debug
         try {
             . (Join-Path $script:projectRootFolder "windows\packageDetails\events.ps1")
         } catch {
-            Write-Logs -Message "Could not load events file for packageDetailsWindow ($($_.Exception))" -Loglevel "error"
+            Write-Logs -Message "Could not load events file for packageDetailsWindow ($($_.Exception))" -Loglevel Error
             return 1
         }
 
         $script:uiHash.gui.packageDetailsWindow = $packageDetailsWindow
 
         # Show the main window
-        Write-Logs -Message "Displaying packageDetailsWindow" -Loglevel "debug"
+        Write-Logs -Message "Displaying packageDetailsWindow for package '$($dgUpdates.SelectedItem.PackageName)' version '$($dgUpdates.SelectedItem.UpdateVersion)'" -Loglevel Info
         $lPackageID.Content = $dgUpdates.SelectedItem.PackageName
         #$lPackageID.Content = "firefox"
         $lPackageVersion.Content = $dgUpdates.SelectedItem.UpdateVersion
@@ -176,9 +188,11 @@ $dgUpdates.Add_MouseDoubleClick({
         try {
             [void]$packageDetailsWindow.ShowDialog()
         } catch {
-            Write-Logs -Message "Error while running packageDetailsWindow ($($_.Exception))" -Loglevel "error"
+            Write-Logs -Message "Error while showing packageDetailsWindow ($($_.Exception))" -Loglevel Error
             return 1
         }
+    } else {
+        Write-Logs "Cannot show details for more than one package" -LogLevel Debug
     }
 })
 

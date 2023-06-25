@@ -22,7 +22,7 @@ function Write-Logs {
             "Error",
             "Critical",
             "Alert",
-            "Emergency"         
+            "Emergency"
         )]
         [Alias("Level","Severity")]
         [string]
@@ -35,9 +35,9 @@ function Write-Logs {
         [Parameter(Mandatory = $false)]
         [String]$LogFile = (Join-Path $env:APPDATA "psChocoUpdateNotify\psChocoUpdateNotify.log")
     )
-    
+
     process {
-        
+
         foreach ($logType in $LogTypes) {
             switch ($logType) {
                 "eventlog" {
@@ -72,23 +72,23 @@ function Write-Logs {
                 Default {}
             }
         }
-        
+
     }
 }
 
-function Start-Choco { # implement the pschoco module from https://gitlab.com/Paxz/choco_gui/tree/master/pschoco into this script, for better integration 
+function Start-Choco { # implement the pschoco module from https://gitlab.com/Paxz/choco_gui/tree/master/pschoco into this script, for better integration
     <#
     .SYNOPSIS
     Chocolatey Output Parserfunction
-    
+
     .DESCRIPTION
     This function behaves like the normal choco.exe, except that it interepretes the given results of some commands and parses them to PSCustomObjects.
     This should make working with chocolatey alot easier if you really want to integrate it into your scripts.
-    
+
     .PARAMETER command
     Chocolatey Command - basically the same command you would write after `choco`.
     Original Documentation to Chocolatey Commands: https://github.com/chocolatey/choco/wiki/CommandsList
-    
+
     .PARAMETER options
     Chocolatey Options - the same options that you would write after the command of an `choco`-Invoke
     Original Documentation to Chocolatey Options and Switches: https://github.com/chocolatey/choco/wiki/CommandsReference#default-options-and-switches
@@ -107,7 +107,7 @@ function Start-Choco { # implement the pschoco module from https://gitlab.com/Pa
     .EXAMPLE
     PS C:\>Start-Choco info vscode
     Runs `choco info vscode` and parses the output to an PSCustomObject
-    
+
     .EXAMPLE
     PS C:\>pschoco outdated
     Runs `choco outdated` over the function alias and parses the output like explained in the first example.
@@ -130,7 +130,7 @@ function Start-Choco { # implement the pschoco module from https://gitlab.com/Pa
         - feature
         - pin
     #>
-    
+
     [CmdletBinding()]
     [alias("schoco","pschoco")]
     param (
@@ -152,7 +152,7 @@ function Start-Choco { # implement the pschoco module from https://gitlab.com/Pa
         [string[]]
         $options = @()
     )
-    
+
     begin {
 
         $proc = $null
@@ -166,23 +166,22 @@ function Start-Choco { # implement the pschoco module from https://gitlab.com/Pa
             $ChocoEXE = "roco"
         }
 
-        Write-Host "Using $ChocoEXE"
+        Write-Verbose "pschoco: Using $ChocoEXE"
     }
-    
+
     process {
         switch -Regex ($command) {
             '^(outdated)$' {
-                & $ChocoEXE $command @options | Select-String -Pattern '^([\w-.]+)\|(.*)\|(.*)\|.*$' | ForEach-Object {
+                & choco $command @options | Select-String -Pattern '^([\w-.]+)\|.*\|(.*)\|.*$' | ForEach-Object {
                     [PSCustomObject]@{
                         PackageName = $_.matches.groups[1].value
-                        currentVersion = $_.matches.groups[2].value
-                        newVersion = $_.matches.groups[3].value
+                        newVersion = $_.matches.groups[2].value
                     }
                 }
             }
 
             '^(search|list|find)$' {
-                & $ChocoEXE $command @options | Select-String -Pattern '^([\w-.]+) ([\d.]+)' | ForEach-Object {
+                & choco $command @options | Select-String -Pattern '^([\w-.]+) ([\d.]+)' | ForEach-Object {
                     [PSCustomObject]@{
                         PackageName = $_.matches.groups[1].value
                         Version = $_.matches.groups[2].value
@@ -192,42 +191,50 @@ function Start-Choco { # implement the pschoco module from https://gitlab.com/Pa
 
             '^(source[s]*)$' {
                 if($options -notcontains 'add|disable|enable|remove') {
-                    & $ChocoEXE $command @options | Select-String -Pattern '^([\w-.]+)( \[Disabled\])? - (\S+) \| Priority (\d)\|Bypass Proxy - (\w+)\|Self-Service - (\w+)\|Admin Only - (\w+)\.$' | ForEach-Object {
+                    & choco $command @options | Select-String -Pattern '^([\w-.]+)( \[Disabled\])? - (\S+) (\(Authenticated\))?\| Priority (\d)\|Bypass Proxy - (\w+)\|Self-Service - (\w+)\|Admin Only - (\w+)\.$' | ForEach-Object {
                         if ($_.matches.groups[2].value -eq ' [Disabled]') {
                             $Enabled = $False
                         } else {
                             $Enabled = $True
                         }
+
+                        if ($_.matches.groups[4].value -eq '(Authenticated)') {
+                            $Authenticated = $True
+                        } else {
+                            $Authenticated = $False
+                        }
+
                         [PSCustomObject]@{
                             SourceName = $_.matches.groups[1].value
                             Enabled = $Enabled
+                            Authenticated = $Authenticated
                             Url = $_.matches.groups[3].value
-                            Priority = $_.matches.groups[4].value
-                            "Bypass Proxy" = $_.matches.groups[5].value
-                            "Self-Service" = $_.matches.groups[6].value
-                            "Admin Only" = $_.matches.groups[7].value
+                            Priority = $_.matches.groups[5].value
+                            "Bypass Proxy" = $_.matches.groups[6].value
+                            "Self-Service" = $_.matches.groups[7].value
+                            "Admin Only" = $_.matches.groups[8].value
                         }
                     }
                 }
                 else {
-                    & $ChocoEXE $command @options
+                    & choco $command @options
                 }
             }
 
             '^(info)$' {
-                $infoArray = (((& $ChocoEXE $command @options) -split '\|') | Where-Object {$_ -match '.*: .*'}).trim() -replace ': ','=' | ConvertFrom-StringData
-                
+                $infoArray = (((& choco $command @options) -split '\|') | Where-Object {$_ -match '.*: .*'}).trim() -replace ': ','=' | ConvertFrom-StringData
+
                 $infoReturn = New-Object PSObject
                 foreach ($infoItem in $infoArray) {
                     Add-Member -InputObject $infoReturn -MemberType NoteProperty -Name $infoItem.Keys -Value ($infoItem.Values -as [string])
                 }
                 return $infoReturn
             }
-            
+
             '^(config)$' {
                 if($options -notcontains 'get|set|unset') {
-                    $chocoResult = & $ChocoEXE $command @options
-                    
+                    $chocoResult = & choco $command @options
+
                     $Settings = foreach ($line in $chocoResult) {
                         Select-String -InputObject $line -Pattern "^(\w+) = (\w+|) \|.*"| ForEach-Object {
                             [PSCustomObject]@{
@@ -251,20 +258,20 @@ function Start-Choco { # implement the pschoco module from https://gitlab.com/Pa
                             }
                         }
                     }
-                    
+
                     return [PSCustomObject]@{
                         Settings = $Settings
                         Features = $Features
                     }
                 }
                 else {
-                    & $ChocoEXE $command $options
+                    & choco $command $options
                 }
             }
 
             '^(feature[s]*)$' {
                 if($options -notcontains 'disable|enable') {
-                    & $ChocoEXE $command @options | Select-String -Pattern '\[([x ])\] (\w+).*' | ForEach-Object {
+                    & choco $command @options | Select-String -Pattern '\[([x ])\] (\w+).*' | ForEach-Object {
                         if($_.matches.groups[1].value -eq "x") {
                             $value = $true
                         }
@@ -281,7 +288,7 @@ function Start-Choco { # implement the pschoco module from https://gitlab.com/Pa
 
             '^(pin)$' {
                 if($options -notcontains 'add|remove') { # options enthält nicht add oder remove
-                    & $ChocoEXE $command @options | Select-String -Pattern '^(.+)\|(.+)' | ForEach-Object {
+                    & choco $command @options | Select-String -Pattern '^(.+)\|(.+)' | ForEach-Object {
                         [PSCustomObject]@{
                             packageName = $_.matches.groups[1].value
                             pinnedVersion = $_.matches.groups[2].value
@@ -289,15 +296,15 @@ function Start-Choco { # implement the pschoco module from https://gitlab.com/Pa
                     }
                 }
                 else {
-                    & $ChocoEXE $command @options
+                    & choco $command @options
                 }
             }
             Default {
-                & $ChocoEXE $command @options
+                & choco $command @options
             }
         }
     }
-    
+
     end {
     }
 }
@@ -321,9 +328,9 @@ function Get-UpdateInfo {
     } else {
         $UpdateCountText = "Updates"
     }
-    
+
     $SelectedText = "($SelectedCount selected for update)"
-    
+
 
     if ($dtUpdates.Count -le 0) {
         "No updates available :>"
@@ -356,14 +363,14 @@ function Update-PackageList {
 
     $psCmdUpdateOutdated = [PowerShell]::Create().AddScript({
         $ErrorActionPreference = "Stop"
-    
-        try {            
+
+        try {
             . ".\helpers.ps1"
-            
+
             Write-Logs -Message "Searching for outdated packages" -LogLevel "Info"
             $uiHash.OutdatedPackages = @(Start-Choco -Command "outdated" -Options "--ignore-unfound")
             Write-Logs -Message "$($uiHash.OutdatedPackages.Count) outdated packages found" -LogLevel "Info"
-    
+
             $script:uiHash.window.Dispatcher.Invoke([System.Action] {
                 try {
                     foreach ($package in $uiHash.OutdatedPackages) {
@@ -374,13 +381,13 @@ function Update-PackageList {
                             $package.newVersion
                         ))
                     }
-    
+
                     $script:uiHash.tbInfo.Text = Get-UpdateInfo -dtUpdates $uiHash.dtUpdates
-                    
+
                 } catch {
                     Write-Logs -Message "Updating list of outdated packages failed with error '$_' on line $($_.InvocationInfo.Line)" -LogLevel "Error"
                 } finally {
-                    
+
                     $script:uiHash.currentAction = "None" # This will end the Progress overlay
                     $script:uiHash.spOverlay.Visibility = "Collapsed"
                     $script:uiHash.gOverlay.Visibility = "Collapsed"
@@ -390,9 +397,9 @@ function Update-PackageList {
                         $script:uiHash.dgUpdates.Visibility = "Visible"
                     }
                 }
-    
-            }, "Normal" )            
-    
+
+            }, "Normal" )
+
         } catch {
             Write-Logs -Message "Updating outdated packages failed with error '$_' on line $($_.InvocationInfo.Line)" -LogLevel "Error"
         }
@@ -425,18 +432,18 @@ function Install-Updates {
 
     $psCmdInstallUpdates = [PowerShell]::Create().AddScript({
         $ErrorActionPreference = "Stop"
-    
-        try {        
+
+        try {
             . ".\helpers.ps1"
-    
+
             Write-Logs -Message "Installing packages" -LogLevel "Info"
-    
+
             $PackageList = ($uiHash.dtUpdates | Group-Object -AsHashTable -Property doUpdate).True.PackageName
 
             Write-Logs -Message "Silent state: $($uiHash.Options.Silent)" -LogLevel "Debug"
             Write-Logs -Message "Hidden state: $($uiHash.Options.Hidden)" -LogLevel "Debug"
             Write-Logs -Message "WhatIf state: $($uiHash.Options.WhatIf)" -LogLevel "Debug"
-    
+
             $ArgumentList = @("upgrade")
 
             if ( $uiHash.Options.Silent -or $uiHash.Options.Hidden) {
@@ -459,15 +466,15 @@ function Install-Updates {
             }
 
             Start-Process @ProcessSplat
-    
+
             Write-Logs -Message "Installing packages finished" -LogLevel "Info"
-    
+
             $script:uiHash.window.Dispatcher.Invoke( [System.Action] {
                 $script:uiHash.currentAction = "AfterInstall"
                 $script:uiHash.spOverlay.Visibility = "Collapsed"
                 $script:uiHash.gOverlay.Visibility = "Collapsed"
             }, "Normal" )
-    
+
         } catch {
             Write-Logs -Message "Installing chocolatey packages failed with error '$_' on line $($_.InvocationInfo.Line)" -LogLevel "Error"
         }
@@ -495,40 +502,40 @@ function Show-Overlay {
 
         $progressRunspace = [runspacefactory]::CreateRunspace()
         $progressRunspace.ApartmentState = "STA"
-        $progressRunspace.ThreadOptions = "ReuseThread"          
+        $progressRunspace.ThreadOptions = "ReuseThread"
         $progressRunspace.Open()
         $progressRunspace.SessionStateProxy.SetVariable("uiHash",$Script:uiHash)
         $progressRunspace.SessionStateProxy.Path.SetLocation($script:projectRootFolder)
 
         $psCmdProgress = [PowerShell]::Create().AddScript({
             $ErrorActionPreference = "Stop"
-        
+
             try {
-                
+
                 . ".\helpers.ps1"
-        
+
                 while ($uiHash.currentAction -ne "None") {
                     Start-Sleep -Milliseconds 500
-        
+
                     $script:uiHash.window.Dispatcher.Invoke([System.Action] {
                         switch($uiHash.tbOverlayProgress.Text) {
                             "" {
-                                $uiHash.tbOverlayProgress.Text = "." 
+                                $uiHash.tbOverlayProgress.Text = "."
                             }
                             "." {
-                                $uiHash.tbOverlayProgress.Text = ".." 
+                                $uiHash.tbOverlayProgress.Text = ".."
                             }
                             ".." {
-                                $uiHash.tbOverlayProgress.Text = "..." 
+                                $uiHash.tbOverlayProgress.Text = "..."
                             }
                             "..." {
-                                $uiHash.tbOverlayProgress.Text = "" 
+                                $uiHash.tbOverlayProgress.Text = ""
                             }
                             default {
                                 $uiHash.tbOverlayProgress.Text = "."
                             }
                         }
-        
+
                     }, "Normal" )
                 }
             } catch {
@@ -548,7 +555,7 @@ function Test-ChocolateyInstall {
     # Just doing a lazy check here. If it is not found in $PATH it won't work anyway
 
     $choco = Get-Command -Name choco -CommandType Application -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
-    
+
     if ( $null -eq $choco -or [String]::IsNullOrWhiteSpace($choco) ) { # choco not found
         return $false
     } else { # choco found
@@ -617,8 +624,13 @@ function Test-Settings {
 }
 
 function Test-Version {
+    # Searches for the latest version on github and compares it with the current running version
+    # rc of $Null means the current version is up-to-date
+    # rc of -1 means there was an error searching for the latest version
+    # rc of type [version] means a new version was found
+
     $RestSplat = @{
-        Uri = "https://api.github.com/repos/we-mi/psChocoUpdateNotify/releases"
+        Uri = "https://api.github.com/repos/we-mi/psChocoUpdateNotify/releases/latest"
         TimeoutSec = $settings.updater.timeout
     }
 
@@ -628,11 +640,11 @@ function Test-Version {
         if ( -not [String]::IsNullOrWhiteSpace($settings.updater.proxyUserName) -and -not [String]::IsNullOrWhiteSpace($settings.updater.proxyPassword)) {
             $cred = New-Object System.Management.Automation.PSCredential -ArgumentList $settings.updater.proxyUserName, (ConvertTo-SecureString $settings.updater.proxyPassword -AsPlainText -Force)
             $RestSplat.ProxyCredential = $cred
-        }   
-    }   
+        }
+    }
 
     try {
-        $result = Invoke-RestMethod @RestSplat
+        $result = Invoke-RestMethod @RestSplat | Sort-Object -Property Created_At -Descending | Select-Object -First 1
         if ($result) {
             $GitHubVersion = [version]($result.name -replace '^v')
 
@@ -641,11 +653,11 @@ function Test-Version {
             } else {
                 return $null
             }
-        
+
         } else {
-            return $null
+            return -1
         }
     } catch {
-        return $null
+        return -1
     }
 }

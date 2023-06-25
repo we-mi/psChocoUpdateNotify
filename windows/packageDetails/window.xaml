@@ -1,7 +1,6 @@
 <Window
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:mdxam="clr-namespace:MdXaml;assembly=MdXaml"
         Title="psChocoUpdateNotify - Package Details" Height="700" Width="1100">
     <Window.Resources>
         <Style x:Key="ButtonFocusVisual">
@@ -22,7 +21,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type Button}">
                         <Grid>
-                            <Border x:Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}"> 
+                            <Border x:Name="Border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
                                 <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" Margin="{TemplateBinding Padding}" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
                             </Border>
                         </Grid>
@@ -63,7 +62,7 @@
 
         <DockPanel Grid.Row="0" Background="Azure">
             <Border BorderThickness="0,0,0,0" BorderBrush="Gray" >
-                <Image x:Name="imgLogo" HorizontalAlignment="Left" Margin="10,10,10,10" Source="C:\Users\WenderMi\Documents\git\github.com\psChocoUpdateNotify\Images\icon_256.png"></Image>
+                <Image x:Name="imgLogo" HorizontalAlignment="Left" Margin="10,10,10,10"></Image>
             </Border>
 
             <Border Margin="0,1,0,1" HorizontalAlignment="Center">
@@ -97,110 +96,120 @@
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="120*" />
+                <ColumnDefinition Width="5" />
                 <ColumnDefinition Width="150*" />
             </Grid.ColumnDefinitions>
 
-            <ScrollViewer Grid.Column="0">
-                <StackPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">Title</Label>
-                        <TextBox x:Name="tbPackageTitle" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"/>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">Authors</Label>
-                        <TextBox x:Name="tbPackageAuthors" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">Created</Label>
-                        <TextBox x:Name="tbLastUpdated" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label x:Name="lTags" MinWidth="100">Tags</Label>
-                        <TextBox x:Name="tbTags" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <!-- <DockPanel Margin="5,5,15,0">
+            <StackPanel Grid.Column="0">
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">Title</Label>
+                    <TextBox x:Name="tbPackageTitle" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"/>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">Authors</Label>
+                    <TextBox x:Name="tbPackageAuthors" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">Created</Label>
+                    <TextBox x:Name="tbLastUpdated" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label x:Name="lTags" MinWidth="100">Tags</Label>
+                    <TextBox x:Name="tbTags" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <!-- <DockPanel Margin="5,5,15,0">
                         <Label MinWidth="100">Owners</Label>
                         <TextBox x:Name="tbPackageOwners" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
                     </DockPanel> -->
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">
-                            <Hyperlink x:Name="hProjectUrl" Cursor="Hand">ProjectUrl</Hyperlink>
-                        </Label>
-                        <TextBox x:Name="tbProjectUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">
-                            <Hyperlink x:Name="hReleaseNotes" Cursor="Hand">ReleaseNotes</Hyperlink>
-                        </Label>
-                        <TextBox x:Name="tbReleaseNotes" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">
-                            <Hyperlink x:Name="hDocsUrl" Cursor="Hand">DocsUrl</Hyperlink>
-                        </Label>
-                        <TextBox x:Name="tbDocsUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">
-                            <Hyperlink x:Name="hIconUrl" Cursor="Hand">IconUrl</Hyperlink>
-                        </Label>
-                        <TextBox x:Name="tbIconUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">
-                            <Hyperlink x:Name="hLicenseUrl" Cursor="Hand">LicenseUrl</Hyperlink>
-                        </Label>
-                        <TextBox x:Name="tbLicenseUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">
-                            <Hyperlink x:Name="hProjectSourceUrl" Cursor="Hand">ProjectSourceUrl</Hyperlink>
-                        </Label>
-                        <TextBox x:Name="tbProjectSourceUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">
-                            <Hyperlink x:Name="hMailingListUrl" Cursor="Hand">MailingListUrl</Hyperlink>
-                        </Label>
-                        <TextBox x:Name="tbMailingListUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100">
-                            <Hyperlink x:Name="hBugTrackerUrl" Cursor="Hand">BugTrackerUrl</Hyperlink>
-                        </Label>
-                        <TextBox x:Name="tbBugTrackerUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label x:Name="lDependencies" MinWidth="100">dependencies</Label>
-                        <TextBox x:Name="tbDependencies" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label x:Name="lCopyright" MinWidth="100">copyright</Label>
-                        <TextBox x:Name="tbCopyright" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
-                    </DockPanel>
-                    <DockPanel Margin="5,5,15,0">
-                        <Label MinWidth="100" MaxWidth="100">
-                            <TextBlock TextWrapping="Wrap" VerticalAlignment="Center">require License Acceptance</TextBlock>
-                        </Label>
-                        <CheckBox x:Name="cbRequireLicenseAcceptance" IsEnabled="False" VerticalContentAlignment="Center" VerticalAlignment="Center"></CheckBox>
-                    </DockPanel>
-                </StackPanel>
-            </ScrollViewer>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">
+                        <Hyperlink x:Name="hProjectUrl" Cursor="Hand">ProjectUrl</Hyperlink>
+                    </Label>
+                    <TextBox x:Name="tbProjectUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">
+                        <Hyperlink x:Name="hReleaseNotes" Cursor="Hand">ReleaseNotes</Hyperlink>
+                    </Label>
+                    <TextBox x:Name="tbReleaseNotes" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">
+                        <Hyperlink x:Name="hDocsUrl" Cursor="Hand">DocsUrl</Hyperlink>
+                    </Label>
+                    <TextBox x:Name="tbDocsUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">
+                        <Hyperlink x:Name="hIconUrl" Cursor="Hand">IconUrl</Hyperlink>
+                    </Label>
+                    <TextBox x:Name="tbIconUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">
+                        <Hyperlink x:Name="hLicenseUrl" Cursor="Hand">LicenseUrl</Hyperlink>
+                    </Label>
+                    <TextBox x:Name="tbLicenseUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">
+                        <Hyperlink x:Name="hProjectSourceUrl" Cursor="Hand">ProjectSourceUrl</Hyperlink>
+                    </Label>
+                    <TextBox x:Name="tbProjectSourceUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">
+                        <Hyperlink x:Name="hMailingListUrl" Cursor="Hand">MailingListUrl</Hyperlink>
+                    </Label>
+                    <TextBox x:Name="tbMailingListUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100">
+                        <Hyperlink x:Name="hBugTrackerUrl" Cursor="Hand">BugTrackerUrl</Hyperlink>
+                    </Label>
+                    <TextBox x:Name="tbBugTrackerUrl" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label x:Name="lDependencies" MinWidth="100">dependencies</Label>
+                    <TextBox x:Name="tbDependencies" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label x:Name="lCopyright" MinWidth="100">copyright</Label>
+                    <TextBox x:Name="tbCopyright" IsReadOnly="True" VerticalContentAlignment="Center" VerticalAlignment="Center"></TextBox>
+                </DockPanel>
+                <DockPanel Margin="5,5,15,0">
+                    <Label MinWidth="100" MaxWidth="100">
+                        <TextBlock TextWrapping="Wrap" VerticalAlignment="Center">require License Acceptance</TextBlock>
+                    </Label>
+                    <CheckBox x:Name="cbRequireLicenseAcceptance" IsEnabled="False" VerticalContentAlignment="Center" VerticalAlignment="Center"></CheckBox>
+                </DockPanel>
+            </StackPanel>
 
-            <DockPanel Grid.Column="1">
+            <GridSplitter Grid.Column="1" VerticalAlignment="Stretch" HorizontalAlignment="Center" Width="8">
+                <GridSplitter.Template>
+                    <ControlTemplate TargetType="{x:Type GridSplitter}">
+                        <Grid>
+                            <Button Content="" />
+                            <Rectangle Fill="#00FFFFFF" />
+                        </Grid>
+                    </ControlTemplate>
+                </GridSplitter.Template>
+            </GridSplitter>
+
+            <DockPanel Grid.Column="2">
                 <Label DockPanel.Dock="Top">Summary</Label>
                 <TextBox x:Name="tbSummary" IsReadOnly="True" DockPanel.Dock="Top" Margin="15,0,15,0"/>
 
                 <DockPanel DockPanel.Dock="Top" Margin="0,15,15,0">
                     <Label>Description</Label>
-                    <CheckBox x:Name="cbViewMarkdown" HorizontalAlignment="Right" Content="View as Plaintext" DockPanel.Dock="Right" VerticalAlignment="Center"></CheckBox>
+                    <CheckBox x:Name="cbViewPlaintext" HorizontalAlignment="Right" Content="View as Plaintext" DockPanel.Dock="Right" VerticalAlignment="Center"></CheckBox>
                 </DockPanel>
 
-                <TextBox x:Name="tbDescription" IsReadOnly="True" DockPanel.Dock="Top" AcceptsReturn="True" Margin="15,0,15,15" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" Visibility="Collapsed"/>
+                <FlowDocumentScrollViewer DockPanel.Dock="Top" x:Name="mdxamDescription" Margin="15,0,15,15" Visibility="Collapsed" BorderBrush="Gray" BorderThickness="0.5">
+                </FlowDocumentScrollViewer>
 
-                <mdxam:MarkdownScrollViewer DockPanel.Dock="Top" x:Name="mdxamDescription" xml:space="preserve" BorderBrush="Gray" BorderThickness="0.5" Margin="15,0,15,15" Visibility="Visible">
-                .
-                </mdxam:MarkdownScrollViewer>
+                <TextBox x:Name="tbDescription" IsReadOnly="True" DockPanel.Dock="Top" AcceptsReturn="True" Margin="15,0,15,15" HorizontalScrollBarVisibility="Visible" VerticalScrollBarVisibility="Visible" Visibility="Visible"/>
+
             </DockPanel>
         </Grid>
 

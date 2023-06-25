@@ -16,16 +16,28 @@ $packageDetailsWindow.Add_ContentRendered({
     $ProgressPreference = "SilentlyContinue"
     $urlRegEx = '^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&\/\/=]*)'
 
-
     $Results = @()
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-    # Loop through every chocolatey source
+    # Loop through every enabled chocolatey source
+    Write-Logs -Message "Loading choco sources for searching package information" -LogLevel Debug
     $sources = Start-Choco -command "source" | Where-Object { $_.Enabled -eq $True }
 
+    # Find package information in every enabled source and add the source name to the package information
     foreach ($source in $sources) {
+        Write-Logs -Message "Searching package in source '$($Source.SourceName)'" -LogLevel Debug
+        Write-Logs -Message "Using filter: ( (Id eq '$($lPackageID.Content)') and (Version eq '$($lPackageVersion.Content)') )" -LogLevel Debug
+
         $url = "$($source.Url)/Packages()?`$filter=( (Id eq '$($lPackageID.Content)') and (Version eq '$($lPackageVersion.Content)') )"
-        $WebResult = [array](Invoke-RestMethod -UseBasicParsing -Uri $url -ErrorAction SilentlyContinue -TimeoutSec 5)
+        try {
+            $WebResult = [array](Invoke-RestMethod -UseBasicParsing -Uri $url -ErrorAction SilentlyContinue -TimeoutSec 5)
+        } catch {
+            Write-Logs -Loglevel Error -Message "Error while retrieving information for package '$($lPackageID.Content)' version $($lPackageVersion.Content)': $_"
+            continue
+        }
+
+        Write-Logs -Message "Found $($WebResult.Count) results in source '$($Source.SourceName)'" -LogLevel Debug
+
         foreach ($package in $WebResult) {
             if ($package -is [System.Xml.XMLElement]) {
                 try {
@@ -33,15 +45,20 @@ $packageDetailsWindow.Add_ContentRendered({
                 } catch {
                     Write-Warning "Could not add repository to package information"
                 }
+            } else {
+                Write-Logs -Message "Unexpected result from package search. Type is: $($package.GetType()); Content is: $($package.ToString() )"
             }
         }
         $Results += $WebResult
     }
 
+    Write-Logs -Message "Found $($Results.Count) packages within all your enabled sources" -LogLevel Info
+
     if ($Results.Count -ge 1) {
 
         if ($Results.Count -gt 1) {
             [System.Windows.Forms.MessageBox]::Show("More than one package of '$($lPackageID.Content)' version '$($lPackageVersion.Content)' was found, maybe due to multiple choco sources. `nOnly the first found package is shown here", "Multiple packages", "OK","Information")
+            Write-Logs -Message "More than one package was found. Only the first one is shown in the details-window. The packages were found in these repos: $($results.properties.repository -join ',')" -LogLevel Warning
         }
 
         $Result = $Results[0]
@@ -74,7 +91,7 @@ $packageDetailsWindow.Add_ContentRendered({
                 $hIconUrl.NavigateUri = $hIconUrl.Tooltip = $tbIconUrl.Text = $result.properties.IconUrl
                 $hIconUrl.Add_Click({ Start-Process $this.NavigateUri })
 
-                if ($result.properties.IconUrl -like "*.png" -or 
+                if ($result.properties.IconUrl -like "*.png" -or
                     $result.properties.IconUrl -like "*.jpg" -or
                     $result.properties.IconUrl -like "*.jpeg") {
                     $imgLogo.Source = $result.properties.IconUrl
@@ -155,9 +172,33 @@ $packageDetailsWindow.Add_ContentRendered({
             $cbRequireLicenseAcceptance.IsChecked = [bool]$result.properties.RequireLicenseAcceptance.'#text'
 
             $tbSummary.Text = $result.summary.'#text'
-            $mdxamDescription.Markdown = $tbDescription.Text = $result.properties.Description
+
+            try {
+                Get-Childitem -Path (Join-Path $script:projectRootFolder "res\dll") -Filter "*.dll" | ForEach-Object { [System.Reflection.Assembly]::LoadFrom($_.Fullname) }
+
+                $engine = [MdXaml.Markdown]::new()
+                $doc = $engine.Transform($result.properties.Description)
+                $mdxamDescription.AddChild($doc)
+
+                $cbViewPlaintext.IsChecked = $False
+                $cbViewPlaintext.IsEnabled = $True
+                $tbDescription.Visibility = "Collapsed"
+                $mdxamDescription.Visibility = "Visible"
+                $cbViewPlaintext.Visibility = "Visible"
+            } catch {
+                Write-Logs -Message "Rendering the markdown description failed and was therefore disabled. The error was: $_" -LogLevel Error
+
+                $cbViewPlaintext.IsChecked = $True
+                $cbViewPlaintext.IsEnabled = $False
+                $tbDescription.Visibility = "Visible"
+                $mdxamDescription.Visibility = "Collapsed"
+                $cbViewPlaintext.Visibility = "Collapsed"
+            }
+
+            $tbDescription.Text = $result.properties.Description
         }
     } else {
+        Write-Logs -Message "No package with the name '$($lPackageID.Content)' and version '$($lPackageVersion.Content)' was found in your enabled sources. This should not have happened" -LogLevel Error
         [System.Windows.Forms.MessageBox]::Show("No package with the name '$($lPackageID.Content)' and version '$($lPackageVersion.Content)' was found. This should not have happened oO", "No package information found", "OK","Error")
     }
 
@@ -165,14 +206,12 @@ $packageDetailsWindow.Add_ContentRendered({
 
 })
 
-$cbViewMarkdown.Add_Unchecked({
+$cbViewPlaintext.Add_Unchecked({
     $tbDescription.Visibility = "Collapsed"
     $mdxamDescription.Visibility = "Visible"
-    $mdxamDescription.Markdown = $tbDescription.Text
-
 })
 
-$cbViewMarkdown.Add_Checked({
+$cbViewPlaintext.Add_Checked({
     $tbDescription.Visibility = "Visible"
     $mdxamDescription.Visibility = "Collapsed"
 })
